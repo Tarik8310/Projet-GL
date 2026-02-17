@@ -3,7 +3,8 @@ Scenario nominal
 Gérer un système :
 1- L'utilisateur ouvre l'application sur la fenêtre d'édition par défaut.
 2- L'utilisateur crée un système (ref créer un système)
-3- L'utilisateur enregistre le système depuis l'onglet fichier. (opt)
+3- L'utilisateur gère les capteurs (ref gérer les capteurs)
+4- L'utilisateur enregistre le système depuis l'onglet fichier. (opt)
 
 Gérer un système - scénarios alternatifs :
 A1 (commence au point 2)
@@ -14,10 +15,6 @@ A1 (commence au point 2)
 A2 (commence au point 3)
 1- L'utilisateur supprime le système.
 (reprend au point 2)
-
-A3 (commence au point 3)
-1- L'utilisateur gère les capteurs (ref gérer les capteurs)
-(reprend au point 3)
 
 Gérer un système - exceptions :
 E1 (commence n'importe où)
@@ -30,5 +27,5 @@ A2- l'utilisateur supprime une boîte.
 A3- l'utilisateur crée un lien entre deux boîtes.
 A4- l'utilisateur supprime un lien.
 A5- l'utilisateur paramètre une boîte.
-A6- l'utilisatzeur déplace une boîte.
+A6- l'utilisateur déplace une boîte.
 
