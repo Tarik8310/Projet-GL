@@ -7,11 +7,10 @@ Gérer une simulation :
 4- Le système initialise les paramètres de simulation (temps, capteurs, conditions).
 5- Le système démarre la simulation.
 6- Le système affiche en temps réel les résultats (données capteurs, états).
-7-L’utilisateur peut : mettre en pause la simulation, reprendre la simulation.
-8- L’utilisateur choisit arrêter la simulation.
-9- Le système met fin à la simulation.
-10- L'utilisateur choisie de sauvegarder les résultats de la simulation.
-11- Le système sauvegarde les résultats de la simulation.
+7- L’utilisateur peut : mettre en pause la simulation, reprendre la simulation. ////
+8- Le système met fin à la simulation.
+9- L'utilisateur choisie de sauvegarder les résultats de la simulation.
+10- Le système sauvegarde les résultats de la simulation.
 
 
 
@@ -26,12 +25,16 @@ A1 (commence au point 7)
 
 A2 (commence au point 7)
 1- L'utilisateur arrête une simulation.
-2- Le systéme arrête uen simulation 
+2- Le systéme arrête une simulation 
 (reprend à l'étape 10)
 
 A3 (commence au point 8)
 1- L’utilisateur ne choisit pas d’enregistrer
 (reprend à l'étape 11)
+
+A4 (commence au point 2)
+1- L'utilisateur choisie une limite de temps pour la simulation
+(reprendre à l'étape 3)
 
 E1 (commence au point 3 ou 4)
 1- Le système détecte une erreur (paramètres invalides, capteurs non configurés)
