@@ -6,7 +6,7 @@ Gérer une simulation :
 3- L’utilisateur choisit lancer une simulation.
 4- Le système initialise les paramètres de simulation (temps, capteurs, conditions).
 5- Le système démarre la simulation.
-6- Le système affiche en temps réel les résultats (données capteurs, états, anomalies éventuelles).
+6- Le système affiche en temps réel les résultats (données capteurs, états).
 7-L’utilisateur peut : mettre en pause la simulation, reprendre la simulation.
 8- L’utilisateur choisit enregistrer les données.
 9- Le système sauvegarde les résultats de la simulation.
