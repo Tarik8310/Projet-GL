@@ -8,16 +8,19 @@ Gérer une simulation :
 5- Le système démarre la simulation.
 6- Le système affiche en temps réel les résultats (données capteurs, états).
 7-L’utilisateur peut : mettre en pause la simulation, reprendre la simulation.
-8- L’utilisateur choisit enregistrer les données.
-9- Le système sauvegarde les résultats de la simulation.
-10- L’utilisateur choisit arrêter la simulation.
-11- Le système met fin à la simulation.
+8- L’utilisateur choisit arrêter la simulation.
+9- Le système met fin à la simulation.
+10- L'utilisateur choisie de sauvegarder les résultats de la simulation.
+11- Le système sauvegarde les résultats de la simulation.
+
+
 
 Gérer une simulation - scénarios alternatifs :
 A1 (commence au point 7)
 1- L'utilisateur met en pausse une simulation.
 2- Le systéme suspend la simulation.
 3- L'utilisateur peut :
+      - Enregistrer les données (reprendre à l'étape 6) 
       - reprendre la simulation (reprendre à l'étape 6)
       - arêter la simulation (reprendre à l'étape 10)
 
