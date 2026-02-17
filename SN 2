@@ -1,0 +1,36 @@
+Scenario nominal
+
+Gérer une simulation :
+1- L’utilisateur accède à la fonctionnalité gérer une simulation.
+2- Le système affiche les options disponibles (lancer une simulation, mettre en pause, arrêter, enregistrer les données ).
+3- L’utilisateur choisit lancer une simulation.
+4- Le système initialise les paramètres de simulation (temps, capteurs, conditions).
+5- Le système démarre la simulation.
+6- Le système affiche en temps réel les résultats (données capteurs, états, anomalies éventuelles).
+7-L’utilisateur peut : mettre en pause la simulation, reprendre la simulation.
+8- L’utilisateur choisit enregistrer les données.
+9- Le système sauvegarde les résultats de la simulation.
+10- L’utilisateur choisit arrêter la simulation.
+11- Le système met fin à la simulation.
+
+Gérer une simulation - scénarios alternatifs :
+A1 (commence au point 7)
+1- L'utilisateur met en pausse une simulation.
+2- Le systéme suspend la simulation.
+3- L'utilisateur peut :
+      - reprendre la simulation (reprendre à l'étape 6)
+      - arêter la simulation (reprendre à l'étape 10)
+
+A2 (commence au point 7)
+1- L'utilisateur arrête une simulation.
+2- Le systéme arrête uen simulation 
+(reprend à l'étape 10)
+
+A3 (commence au point 8)
+1- L’utilisateur ne choisit pas d’enregistrer
+(reprend à l'étape 11)
+
+E1 (commence au point 3 ou 4)
+1- Le système détecte une erreur (paramètres invalides, capteurs non configurés)
+2- le systéme basqule sur l'UC "gérer une anomalie".
+(reprend à l'étape 1) 
