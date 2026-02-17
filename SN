@@ -8,7 +8,7 @@ Gérer un système :
 Gérer un système - scénarios alternatifs :
 A1 (commence au point 2)
 1- L'utilisateur importe un modèle depuis l'onglet fichier.
-2- L'utilisateur apporte des modifications au système (ajout de boîte, suppression de boîte, création ou destruction de lien, création de boîte type, suppression de boîte type). (opt)
+2- L'utilisateur apporte des modifications au système (ajout de boîte, suppression de boîte, création ou destruction de lien). (opt)
 (reprend avant le point 3)
 
 A2 (commence au point 3)
@@ -25,11 +25,10 @@ E1 (commence n'importe où)
 
 Créer un système - scénarios alternatifs :
 loop :
-A1- l'utilisateur ajoute une boîte (clic droit dans l'interface).
+A1- l'utilisateur ajoute une boîte (drag and drop depuis la liste des composants).
 A2- l'utilisateur supprime une boîte.
 A3- l'utilisateur crée un lien entre deux boîtes.
 A4- l'utilisateur supprime un lien.
-A5- l'utilisateur crée une boîte type.
-A6- l'utilisateur supprime une boîte type.
-A7- l'utilisateur paramètre une boîte.
-A9- l'utilisatzeur déplace une boîte.
+A5- l'utilisateur paramètre une boîte.
+A6- l'utilisatzeur déplace une boîte.
+
