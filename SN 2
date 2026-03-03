@@ -15,7 +15,7 @@ Gérer une simulation :
 
 
 Gérer une simulation - scénarios alternatifs :
-A1 (commence au point 7)
+A1 Traiter pause (commence au point 7)
 1- L'utilisateur met en pausse une simulation.
 2- Le systéme suspend la simulation.
 3- L'utilisateur peut :
@@ -23,7 +23,7 @@ A1 (commence au point 7)
       - reprendre la simulation (reprendre à l'étape 6)
       - arêter la simulation (reprendre à l'étape 10)
 
-A2 (commence au point 7)
+A2 Traiter arrêt(commence au point 7)
 1- L'utilisateur arrête une simulation.
 2- Le systéme arrête une simulation 
 (reprend à l'étape 10)
