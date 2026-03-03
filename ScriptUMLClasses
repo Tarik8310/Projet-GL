@@ -1,0 +1,63 @@
+@startuml
+package Modele{
+class systeme{
+id_systeme
+liste_composants
+liens
+}
+class composant{
+id_composant
+nom
+entree
+sortie
+transformation
+attributs
+}
+class capteur{
+id_capteur
+id_composant
+unité
+sortie
+}
+}
+package Vue{
+class Main_windowGUI{}
+class SystemGUI{}
+class SensorGUI{}
+class ComponantGUI{}
+class AnomalyGUI{}
+class SimulationGUI{}
+class HelpGUI{}
+class MenuBarGUI{}
+class FileGUI{}
+class DataGUI{}
+}
+package Controller{
+class Main_windowController{}
+class SystemController{}
+class SensorController{}
+class ComponantController{}
+class SimulationController{}
+class AnomalyController{}
+class HelpController{}
+class MenuBarController{}
+class FileController{}
+class DataController{}
+}
+package Simulation{
+class DataGen{
+id_systeme
+liste_capteurs
+parametres
+donnees
+etat
+}
+class SystemUpdate{}
+}
+package Sortie{
+class CSVfileOutput{}
+}
+package Entree{
+class SystemFileInput{}
+}
+@enduml
