@@ -5,7 +5,7 @@ class componant{}
 class sensor{}
 
 system *-- componant
-sensor"0..1"--"1..1"componant : < mesures
+sensor"0..1"--"1..1"componant : > mesures
 }
 
 package View{
@@ -69,4 +69,6 @@ View ..> Model : Represents >
 Controller -- View : triggers <
 system -- Input : retrieves >
 Output --"1..1" DataGen : samples >
+SystemUpdate "1..1"--"1..1" system : updates >
+sensor "1..n"--"1..1" DataGen : get data <
 @enduml
