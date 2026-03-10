@@ -71,4 +71,6 @@ system -- Input : retrieves >
 Output --"1..1" DataGen : samples >
 SystemUpdate "1..1"--"1..1" system : updates >
 sensor "1..n"--"1..1" DataGen : get data <
+Controller -- Model : controls >
+Controller -- Simulation : controls >
 @enduml
