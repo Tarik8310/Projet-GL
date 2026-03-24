@@ -1,0 +1,76 @@
+@startuml
+package Model{
+class system{}
+class componant{}
+class sensor{}
+
+system *-- componant
+sensor"0..1"--"1..1"componant : > mesures
+}
+
+package View{
+class Main_windowGUI{}
+class SystemGUI{}
+class SensorGUI{}
+class ComponantGUI{}
+class AnomalyGUI{}
+class SimulationGUI{}
+class HelpGUI{}
+class MenuBarGUI{}
+class FileGUI{}
+class DataGUI{}
+
+Main_windowGUI "1..1"<--"1..1" SystemGUI 
+SystemGUI "1..1"<.."1..n" ComponantGUI
+Main_windowGUI "1..1"<--"1..1" MenuBarGUI
+MenuBarGUI "1..1"--"0..1" HelpGUI : opens >
+MenuBarGUI "1..1"--"0..1" FileGUI : opens >
+MenuBarGUI "1..1"--"0..1" SimulationGUI : opens >
+SystemGUI "1..1"<.."1..n"SensorGUI
+SystemGUI "1..1"<.."1..1"AnomalyGUI
+SimulationGUI "1..1"<.."1..1" DataGUI
+}
+
+package Controller{
+class Main_windowController{}
+class SystemController{}
+class SensorController{}
+class ComponantController{}
+class SimulationController{}
+class AnomalyController{}
+class HelpController{}
+class MenuBarController{}
+class FileController{}
+class DataController{}
+}
+
+package Simulation{
+class DataGen{}
+class SystemUpdate{}
+class Anomaly{}
+
+Anomaly "0..n"..>"1..1" DataGen : Inserted in >
+SystemUpdate "1..1"-->"1..1" DataGen : based on >
+}
+
+package Output{
+class CSVfileOutput{}
+}
+
+package Input{
+class SystemFileInput{}
+}
+
+package Metier{}
+
+Input -- Metier : inspects
+View ..> Simulation : Represents >
+View ..> Model : Represents >
+Controller -- View : triggers <
+system -- Input : retrieves >
+Output --"1..1" DataGen : samples >
+SystemUpdate "1..1"--"1..1" system : updates >
+sensor "1..n"--"1..1" DataGen : get data <
+Controller -- Model : controls >
+Controller -- Simulation : controls >
+@enduml
