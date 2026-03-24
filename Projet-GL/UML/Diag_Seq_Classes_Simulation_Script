@@ -1,0 +1,59 @@
+@startuml
+actor "utilisateur" as c
+participant "MenuBarGUI" as barv
+participant "MenuBarController" as bar
+participant "SimulationGUI" as simv
+participant "SimulationController" as sim
+participant "Datagen" as dt
+participant "DataGUI" as dtv
+participant "Timer" as tm
+participant "CSVfileOutput" as csv
+
+c -> barv : Cliquer sur "Lancer"
+barv -> bar : Démarer la simulation
+bar -> simv : La fenêtre de simulation s'affiche
+simv -> sim : La simulation commence
+
+loop Erreur Survenue
+note over sim, c : [Dans le cas d'une erreur de données, le contreleur vas nous renvoyer sue la fenêtre de départ pour modifier les paramétres puis on peut commencer la simulation en cliquant sur lancer et toutt le processus recommence
+end
+
+sim -> tm : Démarer le timer
+sim -> dt : Génération des données en temps réel
+dt -> dtv : Affichage des données en temps réel
+
+opt Mettre en pause une simulation 
+c -> simv : Mettre en pause 
+simv -> sim : Arrêt de la simulation en cours
+sim -> dt : Arrêter de donnée
+dt -> dtv : Arrêt d'affichage
+sim -> tm : Arrêt timer
+end
+
+opt Reprendre la simulation
+c -> simv : Reprendre
+simv -> sim : Redémarer la simulation
+sim -> tm : Redémarer le timer
+sim -> dt : Génération des données en temps réel
+dt -> dtv : Affichage des données en temps réel
+end
+
+opt Arrêter la simulation
+c -> simv : Arrêter
+simv -> sim : Arrêt de la simulation en cours
+sim -> dt : Arrêter de donnée
+dt -> dtv : Arrêt d'affichage
+sim -> tm : Arrêt timer
+end
+
+sim -> c : Fin de la simulation automatiquement 
+sim -> tm : Arrêt du timer
+sim -> dt : Arrêt de génèration des données
+dt -> dtv : Fin d'affichage des données
+
+opt Enregistrer les données
+c -> simv : Enregistrer
+simv -> sim : Enregistrer
+sim -> csv : Enregistrement de données
+end
+@enduml
