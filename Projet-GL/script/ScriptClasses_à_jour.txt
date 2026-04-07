@@ -1,0 +1,210 @@
+@startuml
+package Model{
+class system{
+name
+components
+add_component()
+remove_component()
+get_component_by_name()
+get_all_sensors()
+}
+@startuml
+package Model{
+class system{
+name
+components
+add_component()
+remove_component()
+get_component_by_name()
+get_all_sensors()
+}
+class component{
+name
+is_operational
+outputs
+sensors
+update_state()
+add_sensor()
+remove_sensor()
+}
+class sensor{
+name
+target_output
+unit
+frequency
+component
+anomalies
+read()
+add_anomaly()
+remove_anomaly()
+}
+system *-- component
+sensor"0..1"--"1..1"component : > mesures
+}
+package View{
+class Main_windowGUI{
+theme
+build_menu()
+build_toolbar()
+build_docks()
+build_central()
+apply_stylesheet()
+welcome()
+}
+class SensorDialog{
+component
+parent
+sensor
+validate()
+get_data()
+}
+class AnomalyDialog{
+sim_duration
+randomize()
+validate()
+get_data()
+}
+class SimulationConfigDialog{
+info
+get_config()
+}
+class DataPanel{
+info
+table
+load_data()
+clear_data()
+}
+class PropertiesPanel{
+show_empty()
+show_component()
+show_sensor()
+show_anomaly()
+clear()
+}
+class SettingsDialog{
+accept()
+}
+class SimulationPanel{
+progress_bar
+status
+set_status()
+update_progress()
+update_live_data()
+}
+DataPanel ..> Main_windowGUI
+SimulationPanel ..> Main_windowGUI
+PropertiesPanel ..> Main_windowGUI
+}
+package Controller{
+class Main_windowController{
+theme
+file_ctrl
+system_ctrl
+sensor_ctrl
+anomaly_ctrl
+data_ctrl
+sim_ctrl
+connect_signals()
+import()
+add_sensor_menu()
+add_anomaly_menu()
+selected_componant()
+settings()
+apply_theme()
+show_about()
+run()
+}
+class SystemController{
+set_system()
+toggle_component()
+}
+class SensorController{
+add_sensor()
+delete_sensor()
+}
+class SimulationController{
+worker
+paused
+launch()
+pause_resume()
+stop()
+}
+class AnomalyController{
+sim_duration
+add_anomaly()
+delete_anomaly()
+}
+class FileController{
+import_system()
+export_csv()
+}
+class DataController{
+data
+clear()
+row_recieved()
+simulation_finished()
+get_data()
+}
+class SimulationWorker{
+progress_updated
+data_generated
+simulation_finished
+simulation_error
+engine
+run()
+pause_sim()
+resume_sim()
+stop_sim()
+}
+}
+package Simulation{
+class DataGen{
+sample()
+}
+class SystemUpdate{
+update()
+}
+class Anomaly{
+anomaly_type
+name
+start_time
+duration
+magnitude
+is_active()
+apply()
+reset()
+create_random()
+}
+class Engine{
+system
+duree_totale
+pas_de_temps
+temps_actuel
+historique_donnees
+pause()
+resume()
+stop()
+reset_anomalies()
+run()
+}
+Anomaly "0..n"..>"1..1" DataGen : Inserted in >
+SystemUpdate "1..1"-->"1..1" DataGen : based on >
+}
+package Output{
+class CSVfileOutput{
+filepath
+write()
+export()
+}
+}
+package Input{
+class SystemFileInput{
+filepath
+load()
+}
+}
+package Metier{
+class UserImports
+}
+View --> Controller : >triggers
+@enduml
