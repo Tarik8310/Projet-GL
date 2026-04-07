@@ -1,0 +1,79 @@
+plan:
+1- Titre et Introduction
+2- Objectifs du Projet
+3- Organisation et Travail d’Équipe
+4- Chronologie et Étapes Clés
+5- Architecture Logicielle & Workflow
+6- Modélisation Physique
+8- Démonstration
+9- Difficultés Rencontrées & Solutions
+10- Conclusion
+
+1- Titre et Introduction
+Visuel : Schéma du moteur F-1.
+Contenu :
+Titre du projet : Détection d’anomalies dans la maintenance prédictive
++ quelque détail
+
+2- Objectifs du Projet
+Contenu :
+Développer un logiciel générique pour générer des données de systèmes techniques.
+Créer des anomalies « maîtrisées » pour tester des modèles d’IA.
+(Facultatif) Développer un détecteur d’anomalies basé sur IA discriminante.
+Maîtriser la modélisation orientée objet en Python et le travail sur les données simulées.
+
+3- Organisation et Travail d’Équipe
+Contenu :
+Répartition des tâches : Générateur de données, modélisation IA, interface graphique.
+Gestion de version : Utilisation de Git (branches, merge, suivi des versions).
+Communication : Agile, réunions régulières, partage sur Trello/Discord.
+
+4- Chronologie et Étapes Clés
+Contenu :
+Semaine 1-2 : Spécifications et maquettes du logiciel.
+Semaine 3-4 : Conception UML et placement des capteurs.
+Semaine 5-6 : Génération de données nominales et anomalies.
+Semaine 7-8 : Implementation Python.
+Semaine 9 : Tests unitaires et validation.
+
+5- Architecture Logicielle & Workflow
+Contenu :
+Schéma simplifié :
+Modélisation du système technique.
+Placement des capteurs et génération de données.
+Détection des anomalies par IA (facultatif).
+Flux de données : Générateur → Jeu de données → Modèle IA → Validation.
+
+6- Modélisation Physique
+Contenu :
+Explication des composants modélisés (ex. moteur, capteurs).
+Forces et comportements simulés (vibrations, température, pression).
+Gestion des données : Conversion des mesures en données exploitables pour IA.
+
+7- Fonctionnalités Bonus
+Contenu :
+Interface graphique interactive (placement de capteurs).
+Génération aléatoire de scénarios pour les anomalies.
+Internationalisation : français / anglais.
+
+8- Démonstration
+Contenu :
+Démo en direct du générateur de données.
+Visualisation d’anomalies détectées ou simulées.
+
+9- Difficultés Rencontrées & Solutions
+Contenu :
+Difficulté : Compréhension de la partie anomalie
+Difficulté : Axe dynamique
+
+
+10- Conclusion
+Contenu :
+Bilan : Acquisition de rigueur technique, maîtrise Python, modélisation et IA.
+Perspectives : Ajout d’autres systèmes techniques, amélioration du détecteur IA, intégration temps réel.
+
+11- Références
+Contenu :
+Documentation Python et bibliothèques utilisées.
+Références IA : Autoencodeurs et modèles discriminants.
+Sources sur maintenance prédictive et moteurs F-1.
