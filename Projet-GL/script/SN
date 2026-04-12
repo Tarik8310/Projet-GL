@@ -3,9 +3,21 @@ Scenario nominal
 Gérer les anomalies :
 1- L'utilisateur sélectionne l'option "Gérer les anomalies".
 2- Le système présente l'état actuel des anomalies.
-3- L'utilisateur choisit "Créer une anomalie".
+3- L'utilisateur choisit "Paramétrer une anomalie".
 4- L'utilisateur saisit les paramètres requis (type, intensité, durée).
 5- Le système valide les paramètres et enregistre l'anomalie.
 6- L'anomalie apparaît dans le tableau de bord de simulation.
 
+Gérer les anomalies - scénarios alternatifs :
+A1 – L'utilisateur choisit "Créer aléatoirement"
+(commence à l’étape 3)
+1- L'utilisateur choisit "Créer aléatoirement".
+2- Le système générer une anomalie aléatoirement.
+(retour à l'étape 6)
 
+E1 – Conflit de paramètres : Les valeurs saisies par l'utilisateur sont physiquement impossibles  
+(commence à l’étape 3 ou 4)
+1- Le système détecte une incohérence des valeurs.
+2- Le système affiche un message d’erreur.
+3- L’utilisateur corrige les paramètres.
+Le système retourne à l’étape 1.
