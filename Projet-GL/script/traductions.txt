@@ -1,0 +1,178 @@
+self._main.gui.statusBar().showMessage(
+            f"Anomaly '{anomaly.name}' added to sensor '{sensor.name}'."
+        )
+            
+self._main.gui.statusBar().showMessage(
+            f"Anomaly '{anomaly.name}' deleted."
+        )
+        
+self._main.gui.sim_panel.set_status(
+            f"Simulation done ✔ — {len(data)} data points generated.",
+            "#27ae60",
+        )
+        
+self._main.gui.statusBar().showMessage(
+            f"Simulation done — {len(data)} recordings available."
+        )
+        
+filepath, _ = QFileDialog.getOpenFileName(
+            self._main.gui,
+            "Import system",
+            "",
+            "Python files (*.py);;All files (*)",
+            options=QFileDialog.DontUseNativeDialog,
+        )
+        
+QMessageBox.critical(
+                self._main.gui,
+                "Import error",
+                f"File upload impossible :\n\n{exc}",
+            )
+            
+QMessageBox.warning(self._main.gui, "Export", "No data to export.")
+
+filepath, _ = QFileDialog.getSaveFileName(
+            self._main.gui,
+            "Export CSV data",
+            "simulation_gadmaps.csv",
+            "CSV files (*.csv)",
+            options=QFileDialog.DontUseNativeDialog,
+        )
+        
+QMessageBox.information(
+                self._main.gui,
+                "Export succeded",
+                f"Exported data :\n{filepath}\n({len(data)} recordings)",
+            )
+            
+QMessageBox.critical(self._main.gui, "Error", "CSV export failed.")
+
+QMessageBox.about(
+            self.gui,
+            "About GADMAPS",
+            "<h3>GADMAPS</h3>"
+            "<p>Anomalies and data generator<br>"
+            "for System Predictive Maintenance</p>"
+            "<p>Project Software Engineering &amp; IA — 2025-2026</p>",
+        )
+        
+self._main.gui.statusBar().showMessage(
+            f"Sensor '{sensor.name}' added to '{component.name}'."
+        )
+        
+reply = QMessageBox.question(
+            self._main.gui,
+            "Delete sensor",
+            f"Delete sensor <b>{sensor.name}</b> ?",
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        
+self._main.gui.statusBar().showMessage(
+                f"Sensor '{sensor.name}' deleted."
+            )
+            
+if not system:
+            QMessageBox.warning(self._main.gui, "Simulation", "No system loaded.")
+            return
+
+self._main.gui.action_sim_pause.setText("⏸  Pause / Resume")
+
+self._main.gui.sim_panel.set_status("Simulation running...", "#e67e22")
+
+self._main.gui.action_sim_pause.setText("▶  Resume")
+
+self._main.gui.sim_panel.set_status("Simulation paused ⏸", "#f39c12")
+
+self._main.gui.sim_panel.set_status(f"Error : {msg}", "#e74c3c")
+        QMessageBox.critical(self._main.gui, "Simulation error", msg)
+        
+self._main.gui.action_sim_pause.setText("⏸  Pause / Resume")
+
+self._main.gui.statusBar().showMessage(
+            f"System '{system.name}' loaded — {n} component(s)"
+        )
+        
+state = "operationnal" if comp.is_operational else "out of service"
+        self._main.gui.statusBar().showMessage(
+            f"Component '{comp.name}' is {state}."
+        )
+        
+self.setWindowTitle("Create anomaly")
+
+group = QGroupBox("Anomaly parameters")
+
+self.name_edit.setPlaceholderText("Ex : anomaly_pressure_1")
+        row("Name :", self.name_edit)
+        
+row("Start :", self.start_spin)
+
+row("Duration :", self.duration_spin)
+
+btn_random = QPushButton("🎲  Random generation (UC34)")
+
+btns.button(QDialogButtonBox.Ok).setText("Add")
+
+self.name_edit.setText(f"anomaly_{random.randint(100, 999)}")
+
+if not self.name_edit.text().strip():
+            QMessageBox.warning(self, "Validation", "Anomaly name required.")
+            return
+        self.accept()
+        
+info = QLabel(
+            "Data shows up here after simulation is over. "
+            "Use File → Export CSV to save."
+        )
+        
+self.setWindowTitle(
+            "GADMAPS — Anomalies and Data Generator "
+            "for Predictive Maintenance"
+        )
+        
+file_menu = menu.addMenu("&File")
+        self.action_import = QAction("📂  Import system...", self)
+        
+self.action_export_csv = QAction("💾  Export CSV data...", self)
+
+self.action_quit = QAction("Quit", self)
+
+sensor_menu = menu.addMenu("&Sensors")
+        self.action_add_sensor = QAction("＋  Add sensor", self)
+        
+anomaly_menu = menu.addMenu("&Anomalies")
+        self.action_add_anomaly = QAction("⚠  Create anomaly", self)
+        
+sim_menu = menu.addMenu("&Simulation")
+        self.action_sim_launch = QAction("▶  Launch simulation...", self)
+        
+self.action_sim_pause = QAction("⏸  Pause / Resume", self)
+
+self.action_sim_stop = QAction("⏹  Stop", self)
+
+view_menu = menu.addMenu("&Display")
+        self.action_settings = QAction("⚙  Settings...", self)
+        
+help_menu = menu.addMenu("&Help")
+        self.action_about = QAction("About GADMAPS", self)
+        
+self.tree.setHeaderLabels(["GADMAPS system"])
+
+dock_left = QDockWidget("System explorer", self)
+
+dock_right = QDockWidget("Properties", self)
+
+return (
+            "<center>"
+            f"<h2 style='color:{title_color};'>Welcome to GADMAPS</h2>"
+            f"<p style='color:{sub_color}; font-size:14px;'>"
+            "Anomalies and data generator<br>"
+            "for System Predictive Maintenance"
+            "</p><br>"
+            f"<p style='color:{steps_color};'>"
+            "<b>Step 1</b> — Import a system (Fichier → Importer...)<br>"
+            "<b>Step 2</b> — Add sensors to components<br>"
+            "<b>Step 3</b> — Configure anomalies (optionnal)<br>"
+            "<b>Step 4</b> — Launch simulation (F5)<br>"
+            "<b>Step 5</b> — Export CSV data"
+            "</p></center>"
+        )
