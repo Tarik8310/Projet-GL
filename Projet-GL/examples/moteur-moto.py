@@ -1,7 +1,7 @@
 # moteur-moto.py
 """
 Exemple de système technique : Moteur de moto (4-cylindres en ligne, 650 cc).
-Ce fichier est importable par GADMAPS via Fichier → Importer un système.
+Ce fichier est importable par LambdaSys via Fichier → Importer un système.
 
 Chaque classe hérite de Component et définit :
   - self.outputs  : dict des grandeurs mesurables

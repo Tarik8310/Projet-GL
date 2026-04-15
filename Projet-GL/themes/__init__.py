@@ -1,5 +1,5 @@
 # themes/__init__.py
-"""Gestionnaire de thèmes pour GADMAPS (clair / sombre)."""
+"""Gestionnaire de thèmes pour LambdaSys (clair / sombre)."""
 import json
 import os
 
@@ -171,26 +171,41 @@ class ThemeManager:
     """Charge, sauvegarde et applique les thèmes de l'application."""
 
     @staticmethod
-    def load_theme() -> str:
-        """Retourne le thème sauvegardé ('light' par défaut)."""
+    def _read_config() -> dict:
         try:
             with open(_CONFIG_PATH, encoding="utf-8") as f:
-                return json.load(f).get("theme", "light")
+                return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            return "light"
+            return {}
+
+    @staticmethod
+    def _write_config(config: dict) -> None:
+        with open(_CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+
+    @staticmethod
+    def load_theme() -> str:
+        """Retourne le thème sauvegardé ('light' par défaut)."""
+        return ThemeManager._read_config().get("theme", "light")
 
     @staticmethod
     def save_theme(theme: str) -> None:
         """Persiste le thème dans config.json."""
-        config: dict = {}
-        try:
-            with open(_CONFIG_PATH, encoding="utf-8") as f:
-                config = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
+        config = ThemeManager._read_config()
         config["theme"] = theme
-        with open(_CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2, ensure_ascii=False)
+        ThemeManager._write_config(config)
+
+    @staticmethod
+    def load_lang() -> str:
+        """Retourne la dernière langue choisie ('Français' par défaut)."""
+        return ThemeManager._read_config().get("lang", "Français")
+
+    @staticmethod
+    def save_lang(lang: str) -> None:
+        """Persiste la langue dans config.json."""
+        config = ThemeManager._read_config()
+        config["lang"] = lang
+        ThemeManager._write_config(config)
 
     @staticmethod
     def get_palette(theme: str) -> QPalette:

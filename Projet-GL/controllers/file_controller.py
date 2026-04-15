@@ -50,7 +50,7 @@ class FileController:
         filepath, _ = QFileDialog.getSaveFileName(
             self._main.gui,
             "Exporter les données CSV",
-            "simulation_gadmaps.csv",
+            "simulation_lambdasys.csv",
             "Fichiers CSV (*.csv)",
             options=QFileDialog.DontUseNativeDialog,
         )

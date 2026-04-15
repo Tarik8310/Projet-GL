@@ -49,6 +49,7 @@ class SimulationController:
         self._worker.simulation_error.connect(self._on_error)
 
         self._main.data_ctrl.clear()
+        self._main.gui.sim_panel.init_charts(system.components)
         self._main.gui.sim_panel.set_status("Simulation en cours...", "#e67e22")
         self._main.gui.sim_panel.update_progress(0)
         self._main.gui.tabs.setCurrentIndex(1)  # Onglet Simulation

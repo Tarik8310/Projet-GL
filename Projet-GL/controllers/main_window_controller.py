@@ -14,6 +14,7 @@ from models.component import Component
 from models.sensor import Sensor
 from simulation.anomaly import Anomaly
 from themes import ThemeManager
+from views.language_dialog import LanguageDialog
 from views.main_window_gui import MainWindowGUI
 from views.settings_dialog import SettingsDialog
 
@@ -27,7 +28,14 @@ class MainWindowController:
 
     def __init__(self):
         self._theme = ThemeManager.load_theme()
-        self.gui = MainWindowGUI(theme=self._theme)
+
+        # Sélection de la langue au démarrage — verrouillée pour la session
+        lang_dlg = LanguageDialog(default_lang=ThemeManager.load_lang())
+        lang_dlg.exec_()
+        self._lang = lang_dlg.selected_language
+        ThemeManager.save_lang(self._lang)
+
+        self.gui = MainWindowGUI(theme=self._theme, lang=self._lang)
 
         self.file_ctrl = FileController(self)
         self.system_ctrl = SystemController(self)
@@ -194,10 +202,10 @@ class MainWindowController:
     def _show_about(self) -> None:
         QMessageBox.about(
             self.gui,
-            "À propos de GADMAPS",
-            "<h3>GADMAPS</h3>"
-            "<p>Générateur d'Anomalies et de Données<br>"
-            "pour la MAintenance Prédictive de Systèmes</p>"
+            "À propos de LambdaSys",
+            "<h3>LambdaSys</h3>"
+            "<p>Simulateur générique de systèmes techniques<br>"
+            "pour la génération de données de maintenance prédictive</p>"
             "<p>Projet Génie Logiciel &amp; IA — 2025-2026</p>",
         )
 

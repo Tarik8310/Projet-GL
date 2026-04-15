@@ -1,6 +1,6 @@
 # main.py
 """
-GADMAPS — Point d'entrée de l'application.
+LambdaSys — Point d'entrée de l'application.
 Lance simplement le MainWindowController.
 """
 import sys

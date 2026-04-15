@@ -1,5 +1,7 @@
 # views/settings_dialog.py
-"""SettingsDialog — dialogue de paramètres (thème de l'interface)."""
+"""SettingsDialog — dialogue de paramètres (thème de l'interface).
+La langue est choisie au démarrage et ne peut pas être modifiée en cours de session.
+"""
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QButtonGroup, QDialog, QDialogButtonBox,

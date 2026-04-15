@@ -2,7 +2,7 @@
 """
 Exemple de système technique : Moteur-fusée cryogénique (type Vulcain 2 — Ariane 5).
 Ergols : LOX (oxygène liquide) + LH2 (hydrogène liquide).
-Ce fichier est importable par GADMAPS via Fichier → Importer un système.
+Ce fichier est importable par LambdaSys via Fichier → Importer un système.
 
 Chaque classe hérite de Component et définit :
   - self.outputs  : dict des grandeurs mesurables

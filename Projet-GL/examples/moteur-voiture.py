@@ -1,7 +1,7 @@
 # moteur-voiture.py
 """
 Exemple de système technique : Moteur de voiture thermique (2.0 T, ~180 kW).
-Ce fichier est importable par GADMAPS via Fichier → Importer un système.
+Ce fichier est importable par LambdaSys via Fichier → Importer un système.
 
 Chaque classe hérite de Component et définit :
   - self.outputs  : dict des grandeurs mesurables

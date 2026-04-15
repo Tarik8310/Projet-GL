@@ -1,5 +1,5 @@
 # models/component.py
-"""Classe abstraite Component — base de tout composant d'un système GADMAPS."""
+"""Classe abstraite Component — base de tout composant d'un système LambdaSys."""
 from abc import ABC, abstractmethod
 from typing import Dict, List, TYPE_CHECKING
 

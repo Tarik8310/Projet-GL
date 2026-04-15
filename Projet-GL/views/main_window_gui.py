@@ -1,5 +1,6 @@
 # views/main_window_gui.py
-"""MainWindowGUI — fenêtre principale de GADMAPS."""
+"""MainWindowGUI — fenêtre principale de LambdaSys."""
+
 from PyQt5.QtWidgets import (
     QAction, QDockWidget, QLabel, QMainWindow,
     QTabWidget, QToolBar, QTreeWidget,
@@ -11,192 +12,217 @@ from views.simulation_panel import SimulationPanel
 from views.data_panel import DataPanel
 from themes import ThemeManager
 
+# ------------------------------------------------------------------
+# Dictionnaire de traduction (Internationalisation )
+# ------------------------------------------------------------------
+TRANSLATIONS = {
+    "Français": {
+        "title": "LambdaSys — Simulateur de Systèmes Techniques",
+        "file": "&Fichier",
+        "import": "📂  Importer un système...",
+        "export": "💾  Exporter les données CSV...",
+        "quit": "Quitter",
+        "sensors": "&Capteurs",
+        "add_sensor": "＋  Ajouter un capteur",
+        "anomalies": "&Anomalies",
+        "add_anomaly": "⚠  Créer une anomalie",
+        "simulation": "&Simulation",
+        "launch": "▶  Lancer la simulation...",
+        "pause": "⏸  Pause / Reprendre",
+        "stop": "⏹  Arrêter",
+        "view": "&Affichage",
+        "settings": "⚙  Paramètres...",
+        "help": "&Aide",
+        "about": "À propos",
+        "explorer": "Explorateur du système",
+        "properties": "Propriétés",
+        "welcome_title": "Bienvenue dans LambdaSys",
+        "step1": "<b>Étape 1</b> — 📂  Importez un système <i>(Fichier → Importer un système)</i>",
+        "step2": "<b>Étape 2</b> — 📡  Configurez les capteurs sur chaque composant",
+        "step3": "<b>Étape 3</b> — ⚠  Injectez des anomalies sur les capteurs <i>(optionnel)</i>",
+        "step4": "<b>Étape 4</b> — ▶  Lancez la simulation <i>(Simulation → Lancer)</i>",
+        "step5": "<b>Étape 5</b> — 💾  Exportez les données au format CSV",
+        "status_ready": "Prêt — Aucun système chargé."
+    },
+    "English": {
+        "title": "LambdaSys — Technical Systems Simulator",
+        "file": "&File",
+        "import": "📂  Import system...",
+        "export": "💾  Export CSV data...",
+        "quit": "Quit",
+        "sensors": "&Sensors",
+        "add_sensor": "＋  Add sensor",
+        "anomalies": "&Anomalies",
+        "add_anomaly": "⚠  Create anomaly",
+        "simulation": "&Simulation",
+        "launch": "▶  Launch simulation...",
+        "pause": "⏸  Pause / Resume",
+        "stop": "⏹  Stop",
+        "view": "&View",
+        "settings": "⚙  Settings...",
+        "help": "&Help",
+        "about": "About",
+        "explorer": "System Explorer",
+        "properties": "Properties",
+        "welcome_title": "Welcome to LambdaSys",
+        "step1": "<b>Step 1</b> — 📂  Import a system <i>(File → Import system)</i>",
+        "step2": "<b>Step 2</b> — 📡  Configure sensors on each component",
+        "step3": "<b>Step 3</b> — ⚠  Inject anomalies on sensors <i>(optional)</i>",
+        "step4": "<b>Step 4</b> — ▶  Launch the simulation <i>(Simulation → Launch)</i>",
+        "step5": "<b>Step 5</b> — 💾  Export the data as CSV",
+        "status_ready": "Ready — No system loaded."
+    }
+}
 
 class MainWindowGUI(QMainWindow):
-    """
-    Fenêtre principale : barre de menus (MenuBarGUI), barre d'outils,
-    dock gauche (SystemGUI — arbre), dock droit (PropertiesPanel),
-    zone centrale avec onglets (SimulationGUI, DataGUI).
-    """
-
-    def __init__(self, theme: str = "light"):
+    def __init__(self, theme: str = "light", lang: str = "Français"):
         super().__init__()
         self._theme = theme
-        self.setWindowTitle(
-            "GADMAPS — Générateur d'Anomalies et de Données "
-            "pour la Maintenance Prédictive"
-        )
+        self._language = lang
+        
         self.resize(1440, 860)
         self.setMinimumSize(960, 640)
+
+        # Initialisation des composants
         self._build_menu()
         self._build_toolbar()
         self._build_docks()
         self._build_central()
+        
+        # Application des textes et styles
+        self.retranslate_ui()
         self._apply_stylesheet()
-
-    # ------------------------------------------------------------------
-    # Construction
-    # ------------------------------------------------------------------
 
     def _build_menu(self) -> None:
         menu = self.menuBar()
+        self.file_menu = menu.addMenu("")
+        self.action_import = QAction("", self)
+        self.action_export_csv = QAction("", self)
+        self.action_quit = QAction("", self)
+        self.file_menu.addAction(self.action_import)
+        self.file_menu.addAction(self.action_export_csv)
+        self.file_menu.addAction(self.action_quit)
 
-        # ---- Fichier ----
-        file_menu = menu.addMenu("&Fichier")
-        self.action_import = QAction("📂  Importer un système...", self)
-        self.action_import.setShortcut("Ctrl+O")
+        self.sensor_menu = menu.addMenu("")
+        self.action_add_sensor = QAction("", self)
+        self.sensor_menu.addAction(self.action_add_sensor)
 
-        self.action_export_csv = QAction("💾  Exporter les données CSV...", self)
-        self.action_export_csv.setShortcut("Ctrl+S")
-        self.action_export_csv.setEnabled(False)
+        self.anomaly_menu = menu.addMenu("")
+        self.action_add_anomaly = QAction("", self)
+        self.anomaly_menu.addAction(self.action_add_anomaly)
 
-        self.action_quit = QAction("Quitter", self)
-        self.action_quit.setShortcut("Ctrl+Q")
+        self.sim_menu = menu.addMenu("")
+        self.action_sim_launch = QAction("", self)
+        self.action_sim_pause = QAction("", self)
+        self.action_sim_stop = QAction("", self)
+        self.sim_menu.addAction(self.action_sim_launch)
+        self.sim_menu.addAction(self.action_sim_pause)
+        self.sim_menu.addAction(self.action_sim_stop)
 
-        file_menu.addAction(self.action_import)
-        file_menu.addAction(self.action_export_csv)
-        file_menu.addSeparator()
-        file_menu.addAction(self.action_quit)
+        self.view_menu = menu.addMenu("")
+        self.action_settings = QAction("", self)
+        self.view_menu.addAction(self.action_settings)
 
-        # ---- Capteurs ----
-        sensor_menu = menu.addMenu("&Capteurs")
-        self.action_add_sensor = QAction("＋  Ajouter un capteur", self)
-        self.action_add_sensor.setEnabled(False)
-        sensor_menu.addAction(self.action_add_sensor)
-
-        # ---- Anomalies ----
-        anomaly_menu = menu.addMenu("&Anomalies")
-        self.action_add_anomaly = QAction("⚠  Créer une anomalie", self)
-        self.action_add_anomaly.setEnabled(False)
-        anomaly_menu.addAction(self.action_add_anomaly)
-
-        # ---- Simulation ----
-        sim_menu = menu.addMenu("&Simulation")
-        self.action_sim_launch = QAction("▶  Lancer la simulation...", self)
-        self.action_sim_launch.setShortcut("F5")
-        self.action_sim_launch.setEnabled(False)
-
-        self.action_sim_pause = QAction("⏸  Pause / Reprendre", self)
-        self.action_sim_pause.setShortcut("F6")
-        self.action_sim_pause.setEnabled(False)
-
-        self.action_sim_stop = QAction("⏹  Arrêter", self)
-        self.action_sim_stop.setShortcut("F7")
-        self.action_sim_stop.setEnabled(False)
-
-        sim_menu.addAction(self.action_sim_launch)
-        sim_menu.addSeparator()
-        sim_menu.addAction(self.action_sim_pause)
-        sim_menu.addAction(self.action_sim_stop)
-
-        # ---- Affichage ----
-        view_menu = menu.addMenu("&Affichage")
-        self.action_settings = QAction("⚙  Paramètres...", self)
-        self.action_settings.setShortcut("Ctrl+,")
-        view_menu.addAction(self.action_settings)
-
-        # ---- Aide ----
-        help_menu = menu.addMenu("&Aide")
-        self.action_about = QAction("À propos de GADMAPS", self)
-        help_menu.addAction(self.action_about)
+        self.help_menu = menu.addMenu("")
+        self.action_about = QAction("", self)
+        self.help_menu.addAction(self.action_about)
 
     def _build_toolbar(self) -> None:
-        toolbar = QToolBar("Barre principale")
-        toolbar.setMovable(False)
-        toolbar.setStyleSheet("QToolBar { spacing:5px; padding:3px; }")
-        self.addToolBar(toolbar)
-
-        toolbar.addAction(self.action_import)
-        toolbar.addSeparator()
-        toolbar.addAction(self.action_add_sensor)
-        toolbar.addAction(self.action_add_anomaly)
-        toolbar.addSeparator()
-        toolbar.addAction(self.action_sim_launch)
-        toolbar.addAction(self.action_sim_pause)
-        toolbar.addAction(self.action_sim_stop)
-        toolbar.addSeparator()
-        toolbar.addAction(self.action_export_csv)
+        self.toolbar = QToolBar("Barre principale")
+        self.toolbar.setMovable(False)
+        self.addToolBar(self.toolbar)
+        self.toolbar.addAction(self.action_import)
+        self.toolbar.addAction(self.action_add_sensor)
+        self.toolbar.addAction(self.action_add_anomaly)
+        self.toolbar.addAction(self.action_sim_launch)
+        self.toolbar.addAction(self.action_export_csv)
 
     def _build_docks(self) -> None:
-        # ---- Dock gauche : arbre du système (SystemGUI) ----
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["Système GADMAPS"])
-        self.tree.setMinimumWidth(260)
-        self.tree.setAnimated(True)
-        self.tree.setStyleSheet(
-            "QTreeWidget { border:none; font-size:12px; }"
-            "QTreeWidget::item { padding:3px; }"
-            "QTreeWidget::item:selected { background:#3498db; color:white; }"
-        )
-        dock_left = QDockWidget("Explorateur du système", self)
-        dock_left.setAllowedAreas(Qt.LeftDockWidgetArea)
-        dock_left.setFeatures(QDockWidget.DockWidgetMovable)
-        dock_left.setWidget(self.tree)
-        self.addDockWidget(Qt.LeftDockWidgetArea, dock_left)
+        self.dock_left = QDockWidget("", self)
+        self.dock_left.setWidget(self.tree)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_left)
 
-        # ---- Dock droit : propriétés ----
         self.properties_panel = PropertiesPanel()
-        self.properties_panel.setMinimumWidth(290)
-        dock_right = QDockWidget("Propriétés", self)
-        dock_right.setAllowedAreas(Qt.RightDockWidgetArea)
-        dock_right.setFeatures(QDockWidget.DockWidgetMovable)
-        dock_right.setWidget(self.properties_panel)
-        self.addDockWidget(Qt.RightDockWidgetArea, dock_right)
-
-    def _welcome_html(self, theme: str) -> str:
-        if theme == "dark":
-            title_color   = "#ecf0f1"
-            sub_color     = "#bdc3c7"
-            steps_color   = "#95a5a6"
-        else:
-            title_color   = "#2c3e50"
-            sub_color     = "#7f8c8d"
-            steps_color   = "#95a5a6"
-        return (
-            "<center>"
-            f"<h2 style='color:{title_color};'>Bienvenue dans GADMAPS</h2>"
-            f"<p style='color:{sub_color}; font-size:14px;'>"
-            "Générateur d'Anomalies et de Données<br>"
-            "pour la MAintenance Prédictive de Systèmes"
-            "</p><br>"
-            f"<p style='color:{steps_color};'>"
-            "<b>Étape 1</b> — Importez un système (Fichier → Importer...)<br>"
-            "<b>Étape 2</b> — Ajoutez des capteurs aux composants<br>"
-            "<b>Étape 3</b> — Configurez des anomalies (optionnel)<br>"
-            "<b>Étape 4</b> — Lancez la simulation (F5)<br>"
-            "<b>Étape 5</b> — Exportez les données CSV"
-            "</p></center>"
-        )
+        self.dock_right = QDockWidget("", self)
+        self.dock_right.setWidget(self.properties_panel)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_right)
 
     def _build_central(self) -> None:
         self.tabs = QTabWidget()
-        self.tabs.setDocumentMode(True)
+        self._welcome_label = QLabel()
+        self._welcome_label.setAlignment(Qt.AlignCenter)
+        self.tabs.addTab(self._welcome_label, "🏠")
+        
+        self.sim_panel = SimulationPanel(theme=self._theme)
+        self.tabs.addTab(self.sim_panel, "⚙")
 
-        # Onglet Accueil
-        self._welcome_label = QLabel(self._welcome_html(self._theme))
-        bg = "#1e2d3a" if self._theme == "dark" else "white"
-        self._welcome_label.setStyleSheet(f"background:{bg};")
-        self.tabs.addTab(self._welcome_label, "🏠  Accueil")
-
-        # Onglet Simulation (SimulationGUI)
-        self.sim_panel = SimulationPanel()
-        self.tabs.addTab(self.sim_panel, "⚙  Simulation")
-
-        # Onglet Données (DataGUI)
-        self.data_panel = DataPanel()
-        self.tabs.addTab(self.data_panel, "📊  Données")
-
+        self.data_panel = DataPanel(theme=self._theme)
+        self.tabs.addTab(self.data_panel, "📊")
         self.setCentralWidget(self.tabs)
-        self.statusBar().showMessage("Prêt — Aucun système chargé.")
+
+    def retranslate_ui(self) -> None:
+        """Met à jour tous les textes selon la langue choisie."""
+        t = TRANSLATIONS[self._language]
+        
+        self.setWindowTitle(t["title"])
+        self.file_menu.setTitle(t["file"])
+        self.action_import.setText(t["import"])
+        self.action_export_csv.setText(t["export"])
+        self.action_quit.setText(t["quit"])
+        
+        self.sensor_menu.setTitle(t["sensors"])
+        self.action_add_sensor.setText(t["add_sensor"])
+        
+        self.anomaly_menu.setTitle(t["anomalies"])
+        self.action_add_anomaly.setText(t["add_anomaly"])
+        
+        self.sim_menu.setTitle(t["simulation"])
+        self.action_sim_launch.setText(t["launch"])
+        self.action_sim_pause.setText(t["pause"])
+        self.action_sim_stop.setText(t["stop"])
+        
+        self.view_menu.setTitle(t["view"])
+        self.action_settings.setText(t["settings"])
+        self.help_menu.setTitle(t["help"])
+        self.action_about.setText(t["about"])
+        
+        self.dock_left.setWindowTitle(t["explorer"])
+        self.dock_right.setWindowTitle(t["properties"])
+        self.tree.setHeaderLabel(t["explorer"])
+        
+        self._welcome_label.setText(self._welcome_html(self._theme))
+        self.statusBar().showMessage(t["status_ready"])
+
+    def _welcome_html(self, theme: str) -> str:
+        t = TRANSLATIONS[self._language]
+        title_color = "#ecf0f1" if theme == "dark" else "#2c3e50"
+        step_color  = "#bdc3c7" if theme == "dark" else "#555555"
+        steps = "".join(
+            f"<tr><td style='padding:6px 0; color:{step_color};'>{t[k]}</td></tr>"
+            for k in ("step1", "step2", "step3", "step4", "step5")
+        )
+        return (
+            f"<center>"
+            f"<h2 style='color:{title_color}; margin-bottom:16px;'>{t['welcome_title']}</h2>"
+            f"<table align='center' cellspacing='0' cellpadding='0'>"
+            f"{steps}"
+            f"</table>"
+            f"</center>"
+        )
+
+    @property
+    def language(self) -> str:
+        return self._language
 
     def _apply_stylesheet(self) -> None:
         self.setStyleSheet(ThemeManager.get_stylesheet(self._theme))
-        self.tree.setStyleSheet(ThemeManager.get_tree_stylesheet(self._theme))
+        bg = "#1e2d3a" if self._theme == "dark" else "white"
+        self._welcome_label.setStyleSheet(f"background:{bg};")
 
     def apply_theme(self, theme: str) -> None:
-        """Applique dynamiquement un nouveau thème à la fenêtre."""
         self._theme = theme
         self._apply_stylesheet()
-        bg = "#1e2d3a" if theme == "dark" else "white"
-        self._welcome_label.setStyleSheet(f"background:{bg};")
-        self._welcome_label.setText(self._welcome_html(theme))
+        self.retranslate_ui()
+        self.sim_panel.set_theme(theme)
+        self.data_panel.set_theme(theme)

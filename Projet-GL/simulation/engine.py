@@ -1,5 +1,5 @@
 # simulation/engine.py
-"""Classe SimulationEngine — moteur de simulation principal de GADMAPS."""
+"""Classe SimulationEngine — moteur de simulation principal de LambdaSys."""
 import time
 from typing import Any, Callable, Dict, List, Optional
 
@@ -87,6 +87,8 @@ class SimulationEngine:
         self._reset_anomalies()
 
         while self._running and self.temps_actuel <= self.duree_totale:
+            step_start = time.perf_counter()
+
             while self._paused and self._running:
                 time.sleep(0.02)
 
@@ -101,6 +103,12 @@ class SimulationEngine:
                 self._progress_callback(min(pct, 100))
 
             self.temps_actuel = round(self.temps_actuel + self.pas_de_temps, 6)
+
+            # Respect du temps réel : dormir le reliquat du pas de temps
+            elapsed = time.perf_counter() - step_start
+            remaining = self.pas_de_temps - elapsed
+            if remaining > 0:
+                time.sleep(remaining)
 
         self._running = False
         print(f"[Simulation] Terminée — {len(self.historique_donnees)} points générés")
