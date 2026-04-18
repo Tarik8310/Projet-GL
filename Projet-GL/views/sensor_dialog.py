@@ -24,6 +24,13 @@ class SensorDialog(QDialog):
         parent=None,
         sensor: Optional[Sensor] = None,
     ):
+        """
+        Construit le dialogue de création ou de modification d'un capteur.
+
+        :param component: Composant auquel le capteur sera attaché.
+        :param parent: Widget Qt parent (facultatif).
+        :param sensor: Capteur existant à modifier, ou None pour une création.
+        """
         super().__init__(parent)
         self.component = component
         self.sensor = sensor
@@ -31,7 +38,8 @@ class SensorDialog(QDialog):
         self.setMinimumWidth(440)
         self._build_ui()
 
-    def _build_ui(self) -> None:
+    def _build_ui(self):
+        """Construit le formulaire de saisie des paramètres du capteur."""
         layout = QVBoxLayout(self)
 
         header = QLabel(f"Composant : <b>{self.component.name}</b>")
@@ -41,7 +49,7 @@ class SensorDialog(QDialog):
         group = QGroupBox("Paramètres du capteur")
         form = QVBoxLayout(group)
 
-        def row(label: str, widget) -> None:
+        def row(label: str, widget):
             h = QHBoxLayout()
             lbl = QLabel(label)
             lbl.setFixedWidth(140)
@@ -85,7 +93,8 @@ class SensorDialog(QDialog):
         btns.rejected.connect(self.reject)
         layout.addWidget(btns)
 
-    def _validate(self) -> None:
+    def _validate(self):
+        """Vérifie la saisie et accepte le dialogue si les données sont valides."""
         if not self.name_edit.text().strip():
             QMessageBox.warning(self, "Validation", "Le nom du capteur est requis.")
             return
@@ -97,6 +106,11 @@ class SensorDialog(QDialog):
         self.accept()
 
     def get_data(self) -> dict:
+        """
+        Retourne les paramètres saisis sous forme de dictionnaire.
+
+        :return: Dictionnaire avec les clés name, target_output, unit, frequency.
+        """
         return {
             "name": self.name_edit.text().strip(),
             "target_output": self.output_combo.currentText(),

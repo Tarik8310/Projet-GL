@@ -27,6 +27,12 @@ class MainWindowController:
     """
 
     def __init__(self):
+        """
+        Construit la fenêtre principale et connecte tous les sous-contrôleurs.
+
+        Charge le thème et la langue persistés, instancie la vue principale,
+        puis relie les signaux de la vue aux gestionnaires métier.
+        """
         self._theme = ThemeManager.load_theme()
 
         # Sélection de la langue au démarrage — verrouillée pour la session
@@ -50,7 +56,8 @@ class MainWindowController:
     # Connexion des signaux
     # ------------------------------------------------------------------
 
-    def _connect_signals(self) -> None:
+    def _connect_signals(self):
+        """Connecte tous les signaux Qt de la vue aux méthodes de contrôle."""
         gui = self.gui
 
         # Fichier
@@ -66,10 +73,14 @@ class MainWindowController:
         # Anomalies
         gui.action_add_anomaly.triggered.connect(self._on_add_anomaly_menu)
 
-        # Simulation
+        # Simulation — menu
         gui.action_sim_launch.triggered.connect(self.sim_ctrl.launch)
         gui.action_sim_pause.triggered.connect(self.sim_ctrl.pause_resume)
         gui.action_sim_stop.triggered.connect(self.sim_ctrl.stop)
+
+        # Simulation — boutons du panneau (même actions)
+        gui.sim_panel.btn_pause.clicked.connect(self.sim_ctrl.pause_resume)
+        gui.sim_panel.btn_stop.clicked.connect(self.sim_ctrl.stop)
 
         # Affichage
         gui.action_settings.triggered.connect(self._on_settings)
@@ -92,13 +103,14 @@ class MainWindowController:
     # Gestionnaires d'événements
     # ------------------------------------------------------------------
 
-    def _on_import(self) -> None:
+    def _on_import(self):
+        """Déclenche l'import d'un système et l'affiche si le chargement réussit."""
         system = self.file_ctrl.import_system()
         if system:
             self.system_ctrl.set_system(system)
             self.gui.tabs.setCurrentIndex(0)
 
-    def _on_add_sensor_menu(self) -> None:
+    def _on_add_sensor_menu(self):
         """Ajoute un capteur au composant sélectionné (ou au premier disponible)."""
         system = self.system_ctrl.system
         if not system or not system.components:
@@ -106,21 +118,19 @@ class MainWindowController:
         comp = self._selected_component()
         self.sensor_ctrl.add_sensor(comp or system.components[0])
 
-    def _on_add_anomaly_menu(self) -> None:
-        """Ajoute une anomalie au capteur sélectionné (ou au premier disponible)."""
+    def _on_add_anomaly_menu(self):
+        """Ajoute une anomalie au composant sélectionné (ou au premier disponible)."""
         item = self.gui.tree.currentItem()
         if item:
             obj = item.data(0, Qt.UserRole)
-            if isinstance(obj, Sensor):
+            if isinstance(obj, Component):
                 self.anomaly_ctrl.add_anomaly(obj)
                 return
         system = self.system_ctrl.system
-        if system:
-            all_sensors = system.get_all_sensors()
-            if all_sensors:
-                self.anomaly_ctrl.add_anomaly(all_sensors[0])
+        if system and system.components:
+            self.anomaly_ctrl.add_anomaly(system.components[0])
 
-    def _on_tree_item_clicked(self, item: QTreeWidgetItem, _col: int) -> None:
+    def _on_tree_item_clicked(self, item: QTreeWidgetItem, _col: int):
         """Affiche les propriétés de l'élément cliqué dans le panneau droit."""
         obj = item.data(0, Qt.UserRole)
         if isinstance(obj, Component):
@@ -144,7 +154,7 @@ class MainWindowController:
     # Reconstruction de l'arbre (SystemGUI)
     # ------------------------------------------------------------------
 
-    def refresh_tree(self) -> None:
+    def refresh_tree(self):
         """Reconstruit entièrement l'arborescence du système actif."""
         self.gui.tree.clear()
         system = self.system_ctrl.system
@@ -167,6 +177,14 @@ class MainWindowController:
                 out_item = QTreeWidgetItem(comp_item, [f"    ⬡  {out_name}"])
                 out_item.setForeground(0, QColor("#95a5a6"))
 
+            for anomaly in comp.anomalies:
+                a_item = QTreeWidgetItem(
+                    comp_item,
+                    [f"    ⚠  {anomaly.name}  [{anomaly.anomaly_type.value}]"],
+                )
+                a_item.setData(0, Qt.UserRole, anomaly)
+                a_item.setForeground(0, QColor("#e74c3c"))
+
             for sensor in comp.sensors:
                 s_item = QTreeWidgetItem(
                     comp_item,
@@ -175,31 +193,30 @@ class MainWindowController:
                 s_item.setData(0, Qt.UserRole, sensor)
                 s_item.setForeground(0, QColor("#2980b9"))
 
-                for anomaly in sensor.anomalies:
-                    a_item = QTreeWidgetItem(
-                        s_item,
-                        [f"        ⚠  {anomaly.name}  [{anomaly.anomaly_type.value}]"],
-                    )
-                    a_item.setData(0, Qt.UserRole, anomaly)
-                    a_item.setForeground(0, QColor("#e74c3c"))
-
         self.gui.tree.expandAll()
 
     # ------------------------------------------------------------------
 
-    def _on_settings(self) -> None:
+    def _on_settings(self):
+        """Ouvre le dialogue de paramètres et connecte le signal de changement de thème."""
         dlg = SettingsDialog(self._theme, self.gui)
         dlg.theme_changed.connect(self._apply_theme)
         dlg.exec_()
 
-    def _apply_theme(self, theme: str) -> None:
+    def _apply_theme(self, theme: str):
+        """
+        Applique un nouveau thème visuel à toute l'application.
+
+        :param theme: Identifiant du thème ('light' ou 'dark').
+        """
         from PyQt5.QtWidgets import QApplication
         self._theme = theme
         ThemeManager.save_theme(theme)
         QApplication.instance().setPalette(ThemeManager.get_palette(theme))
         self.gui.apply_theme(theme)
 
-    def _show_about(self) -> None:
+    def _show_about(self):
+        """Affiche la boîte de dialogue «À propos» de LambdaSys."""
         QMessageBox.about(
             self.gui,
             "À propos de LambdaSys",
@@ -209,5 +226,6 @@ class MainWindowController:
             "<p>Projet Génie Logiciel &amp; IA — 2025-2026</p>",
         )
 
-    def run(self) -> None:
+    def run(self):
+        """Affiche la fenêtre principale et démarre la boucle d'événements Qt."""
         self.gui.show()

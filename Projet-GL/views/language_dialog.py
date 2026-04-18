@@ -18,6 +18,12 @@ class LanguageDialog(QDialog):
     LANGUAGES = ["Français", "English"]
 
     def __init__(self, default_lang: str = "Français", parent=None):
+        """
+        Construit le dialogue de sélection de la langue avec la langue par défaut présélectionnée.
+
+        :param default_lang: Langue présélectionnée ('Français' ou 'English').
+        :param parent: Widget Qt parent (facultatif).
+        """
         super().__init__(parent)
         self.setWindowTitle("LambdaSys — Choix de la langue / Language")
         self.setMinimumWidth(320)
@@ -25,7 +31,8 @@ class LanguageDialog(QDialog):
         self._selected = default_lang
         self._build()
 
-    def _build(self) -> None:
+    def _build(self):
+        """Construit le formulaire avec les boutons radio de sélection de langue."""
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
 
@@ -48,10 +55,17 @@ class LanguageDialog(QDialog):
         buttons.accepted.connect(self.accept)
         layout.addWidget(buttons)
 
-    def _on_toggle(self, checked: bool, lang: str) -> None:
+    def _on_toggle(self, checked: bool, lang: str):
+        """
+        Met à jour la langue sélectionnée lors d'un changement de bouton radio.
+
+        :param checked: True si le bouton est activé.
+        :param lang: Langue associée au bouton radio.
+        """
         if checked:
             self._selected = lang
 
     @property
     def selected_language(self) -> str:
+        """Retourne la langue choisie par l'utilisateur."""
         return self._selected

@@ -10,18 +10,24 @@ class SimulationConfigDialog(QDialog):
     """Configure la durée et le pas de temps avant le lancement."""
 
     def __init__(self, parent=None):
+        """
+        Construit le dialogue de configuration de la simulation.
+
+        :param parent: Widget Qt parent (facultatif).
+        """
         super().__init__(parent)
         self.setWindowTitle("Configurer la simulation")
         self.setMinimumWidth(380)
         self._build_ui()
 
-    def _build_ui(self) -> None:
+    def _build_ui(self):
+        """Construit le formulaire avec les champs durée et pas de temps."""
         layout = QVBoxLayout(self)
 
         group = QGroupBox("Paramètres")
         form = QVBoxLayout(group)
 
-        def row(label: str, widget) -> None:
+        def row(label: str, widget):
             h = QHBoxLayout()
             lbl = QLabel(label)
             lbl.setFixedWidth(140)
@@ -59,6 +65,11 @@ class SimulationConfigDialog(QDialog):
         layout.addWidget(btns)
 
     def get_config(self) -> dict:
+        """
+        Retourne la configuration de simulation saisie.
+
+        :return: Dictionnaire avec les clés ``duration`` (s) et ``step`` (s).
+        """
         return {
             "duration": self.duration_spin.value(),
             "step": self.step_spin.value(),

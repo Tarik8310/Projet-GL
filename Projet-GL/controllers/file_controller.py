@@ -42,7 +42,7 @@ class FileController:
             )
             return None
 
-    def export_csv(self, data: List[Dict[str, Any]]) -> None:
+    def export_csv(self, data: List[Dict[str, Any]]):
         """Ouvre un sélecteur de destination et exporte les données en CSV."""
         if not data:
             QMessageBox.warning(self._main.gui, "Export", "Aucune donnée à exporter.")

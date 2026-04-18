@@ -7,8 +7,8 @@ import pyqtgraph as pg
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QLabel, QProgressBar, QScrollArea, QSizePolicy,
-    QVBoxLayout, QWidget,
+    QHBoxLayout, QLabel, QProgressBar, QPushButton,
+    QScrollArea, QSizePolicy, QVBoxLayout, QWidget,
 )
 
 # Antialiasing global, pas d'OpenGL requis
@@ -52,6 +52,9 @@ class ComponentChart(QWidget):
     Un PlotWidget PyQtGraph par composant.
     Les points sont bufferisés (push_data) et rendus en lot (flush)
     par un QTimer externe — jamais plus d'un dessin par frame.
+
+    Les plages d'anomalie sont affichées comme zones rouges semi-transparentes
+    avec une ligne verticale annotée au démarrage.
     """
 
     def __init__(
@@ -59,14 +62,24 @@ class ComponentChart(QWidget):
         comp_name: str,
         columns: List[str],
         theme: str = "light",
+        anomalies: list = None,
         parent=None,
     ):
+        """
+        Construit le graphique PyQtGraph pour un composant.
+
+        :param comp_name: Nom du composant (utilisé comme titre et préfixe de colonnes).
+        :param columns: Noms complets des colonnes de données à tracer.
+        :param theme: Thème visuel initial ('light' ou 'dark').
+        :param anomalies: Liste d'anomalies à matérialiser sur le graphique.
+        :param parent: Widget Qt parent (facultatif).
+        """
         super().__init__(parent)
         self.comp_name = comp_name
         self.columns = columns
         cfg = _tcfg(theme)
 
-        height_px = max(260, 170 + 32 * len(columns))
+        height_px = max(280, 190 + 32 * len(columns))
 
         # --- PlotWidget ---
         self.plot = pg.PlotWidget(background=cfg["bg"])
@@ -106,6 +119,9 @@ class ComponentChart(QWidget):
             )
             self._curves[col] = curve
 
+        # Zones d'anomalie (dessinées sous les courbes)
+        self._draw_anomaly_regions(anomalies or [])
+
         # Buffer et données accumulées
         self._x: List[float] = []
         self._y: Dict[str, List[float]] = {col: [] for col in columns}
@@ -119,11 +135,11 @@ class ComponentChart(QWidget):
     # API publique
     # ------------------------------------------------------------------
 
-    def push_data(self, t: float, values: Dict[str, float]) -> None:
+    def push_data(self, t: float, values: Dict[str, float]):
         """Empile un point dans le buffer (thread-safe pour le thread Qt principal)."""
         self._pending.append((t, values))
 
-    def flush(self) -> None:
+    def flush(self):
         """Traite le buffer et redessine une seule fois (appelé par le QTimer 30 fps)."""
         if not self._pending:
             return
@@ -137,7 +153,8 @@ class ComponentChart(QWidget):
         for col, curve in self._curves.items():
             curve.setData(x, np.asarray(self._y[col], dtype=np.float64))
 
-    def clear(self) -> None:
+    def clear(self):
+        """Réinitialise toutes les données et courbes du graphique."""
         self._x.clear()
         for col in self._y:
             self._y[col].clear()
@@ -145,7 +162,12 @@ class ComponentChart(QWidget):
         for curve in self._curves.values():
             curve.setData([], [])
 
-    def set_theme(self, theme: str) -> None:
+    def set_theme(self, theme: str):
+        """
+        Met à jour les couleurs du graphique selon le thème choisi.
+
+        :param theme: Thème visuel ('light' ou 'dark').
+        """
         cfg = _tcfg(theme)
         self.plot.setBackground(cfg["bg"])
         for side in ("bottom", "left"):
@@ -157,8 +179,56 @@ class ComponentChart(QWidget):
         self._set_title(cfg)
 
     # ------------------------------------------------------------------
+    # Zones d'anomalie
+    # ------------------------------------------------------------------
 
-    def _set_title(self, cfg: Dict[str, str]) -> None:
+    def _draw_anomaly_regions(self, anomalies: list):
+        """
+        Dessine pour chaque anomalie :
+        - une zone rouge semi-transparente sur toute la durée
+        - une ligne verticale pointillée au début avec le nom de l'anomalie
+        """
+        for anomaly in anomalies:
+            t_start = anomaly.start_time
+            t_end = anomaly.start_time + anomaly.duration
+
+            # Zone colorée (derrière les courbes)
+            region = pg.LinearRegionItem(
+                values=[t_start, t_end],
+                brush=pg.mkBrush(231, 76, 60, 45),
+                movable=False,
+                pen=pg.mkPen(231, 76, 60, 120, width=1),
+            )
+            region.setZValue(-10)
+            self.plot.addItem(region)
+
+            # Ligne de début annotée avec le nom
+            line = pg.InfiniteLine(
+                pos=t_start,
+                angle=90,
+                pen=pg.mkPen(
+                    color=(231, 76, 60),
+                    width=1,
+                    style=Qt.DashLine,
+                ),
+                label=f"⚠ {anomaly.name}",
+                labelOpts={
+                    "color": (231, 76, 60),
+                    "position": 0.93,
+                    "fill": pg.mkBrush(255, 255, 255, 140),
+                    "movable": False,
+                },
+            )
+            self.plot.addItem(line)
+
+    # ------------------------------------------------------------------
+
+    def _set_title(self, cfg: Dict[str, str]):
+        """
+        Applique le titre HTML du graphique avec la couleur de premier plan correcte.
+
+        :param cfg: Dictionnaire de couleurs du thème courant.
+        """
         self.plot.setTitle(
             f"<span style='color:{cfg['fg']}; font-size:10pt; font-weight:600;'>"
             f"{self.comp_name}</span>",
@@ -176,6 +246,13 @@ class SimulationPanel(QWidget):
     """
 
     def __init__(self, theme: str = "light", parent=None):
+        """
+        Construit le panneau de simulation avec statut, barre de progression
+        et zone déroulante destinée aux graphiques par composant.
+
+        :param theme: Thème visuel initial ('light' ou 'dark').
+        :param parent: Widget Qt parent (facultatif).
+        """
         super().__init__(parent)
         self._theme = theme
         layout = QVBoxLayout(self)
@@ -197,6 +274,35 @@ class SimulationPanel(QWidget):
         self.progress_bar.setTextVisible(True)
         self.progress_bar.setFixedHeight(24)
         layout.addWidget(self.progress_bar)
+
+        # --- Boutons de contrôle ---
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(8)
+
+        self.btn_pause = QPushButton("⏸  Pause / Reprendre")
+        self.btn_pause.setFixedHeight(32)
+        self.btn_pause.setEnabled(False)
+        self.btn_pause.setStyleSheet(
+            "QPushButton { background:#e67e22; color:white; border-radius:4px;"
+            "  padding:0 14px; font-weight:600; }"
+            "QPushButton:hover { background:#d35400; }"
+            "QPushButton:disabled { background:#7f8c8d; color:#bdc3c7; }"
+        )
+
+        self.btn_stop = QPushButton("⏹  Arrêter")
+        self.btn_stop.setFixedHeight(32)
+        self.btn_stop.setEnabled(False)
+        self.btn_stop.setStyleSheet(
+            "QPushButton { background:#e74c3c; color:white; border-radius:4px;"
+            "  padding:0 14px; font-weight:600; }"
+            "QPushButton:hover { background:#c0392b; }"
+            "QPushButton:disabled { background:#7f8c8d; color:#bdc3c7; }"
+        )
+
+        btn_row.addWidget(self.btn_pause)
+        btn_row.addWidget(self.btn_stop)
+        btn_row.addStretch()
+        layout.addLayout(btn_row)
 
         # --- Zone déroulante ---
         self._scroll = QScrollArea()
@@ -230,16 +336,27 @@ class SimulationPanel(QWidget):
     # Interface publique
     # ------------------------------------------------------------------
 
-    def set_status(self, text: str, color: str = "#2c3e50") -> None:
+    def set_status(self, text: str, color: str = "#2c3e50"):
+        """
+        Met à jour le libellé de statut de la simulation.
+
+        :param text: Message à afficher.
+        :param color: Couleur CSS du texte (hexadécimal).
+        """
         self.status_label.setText(text)
         self.status_label.setStyleSheet(
             f"font-size:13px; font-weight:bold; color:{color};"
         )
 
-    def update_progress(self, value: int) -> None:
+    def update_progress(self, value: int):
+        """
+        Met à jour la barre de progression.
+
+        :param value: Pourcentage d'avancement (0–100).
+        """
         self.progress_bar.setValue(value)
 
-    def init_charts(self, components) -> None:
+    def init_charts(self, components):
         """Crée un graphique par composant juste avant le lancement."""
         self._refresh_timer.stop()
 
@@ -256,7 +373,12 @@ class SimulationPanel(QWidget):
             cols += [f"{comp.name}_{s.name}[{s.unit}]" for s in comp.sensors]
             if not cols:
                 continue
-            chart = ComponentChart(comp.name, cols, theme=self._theme)
+            chart = ComponentChart(
+                comp.name,
+                cols,
+                theme=self._theme,
+                anomalies=comp.anomalies,
+            )
             self._component_charts[comp.name] = chart
             self._charts_layout.addWidget(chart)
 
@@ -271,20 +393,21 @@ class SimulationPanel(QWidget):
         self._charts_layout.addStretch()
         self._refresh_timer.start()
 
-    def update_live_data(self, data: Dict[str, Any]) -> None:
+    def update_live_data(self, data: Dict[str, Any]):
         """Reçoit un point depuis DataController et l'empile dans les charts."""
         t = data.get("Temps_s", 0.0)
         for chart in self._component_charts.values():
             values = {col: data[col] for col in chart.columns if col in data}
             chart.push_data(t, values)
 
-    def set_theme(self, theme: str) -> None:
+    def set_theme(self, theme: str):
         self._theme = theme
         for chart in self._component_charts.values():
             chart.set_theme(theme)
 
     # ------------------------------------------------------------------
 
-    def _flush_all(self) -> None:
+    def _flush_all(self):
+        """Appelé par le QTimer (30 fps) pour vider les buffers de tous les graphiques."""
         for chart in self._component_charts.values():
             chart.flush()

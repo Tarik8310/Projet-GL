@@ -25,7 +25,7 @@ class AlimentationErgols(Component):
             "temperature_LH2_C":       -253.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         # Séquence de mise à feu : montée en débit sur 4 s
         regime = min(1.0, t / 4.0)
         self.outputs["debit_LOX_kg_s"] = (
@@ -57,7 +57,7 @@ class TurbopompeCryogenique(Component):
             "temperature_paliers_C":    20.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 4.0)
         self.outputs["vitesse_rotation_rpm"] = (
             34_000.0 * regime + 200.0 * math.sin(t * 2.0)
@@ -82,7 +82,7 @@ class ChambreCombustionFusee(Component):
             "richesse_ergols":           0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 4.5)
         self.outputs["temperature_combustion_C"] = (
             3_500.0 * regime + 30.0 * math.sin(t * 0.7)
@@ -108,7 +108,7 @@ class TuyereExpansion(Component):
             "temperature_col_C":    20.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 5.0)
         self.outputs["poussee_kN"]           = (
             1_340.0 * regime + 8.0 * math.sin(t * 0.6)
@@ -138,7 +138,7 @@ class RefroidissementRegen(Component):
             "flux_thermique_MW_m2":          0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 4.0)
         self.outputs["debit_refrigerant_kg_s"] = (
             40.0 * regime + 0.3 * math.sin(t * 0.9)

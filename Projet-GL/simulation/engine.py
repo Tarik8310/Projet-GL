@@ -22,6 +22,13 @@ class SimulationEngine:
         duree_totale: float = 10.0,
         pas_de_temps: float = 0.1,
     ):
+        """
+        Initialise le moteur de simulation.
+
+        :param system: Instance de System ou liste de Component.
+        :param duree_totale: Durée totale de la simulation en secondes.
+        :param pas_de_temps: Pas de temps en secondes.
+        """
         # Compatibilité : accepte un System ou une liste de composants
         if isinstance(system, System):
             self.system: Optional[System] = system
@@ -44,36 +51,49 @@ class SimulationEngine:
     # Configuration des callbacks
     # ------------------------------------------------------------------
 
-    def set_progress_callback(self, cb: Callable[[int], None]) -> None:
-        """Appelé avec la progression (0–100) à chaque pas de temps."""
+    def set_progress_callback(self, cb: Callable[[int], None]):
+        """
+        Enregistre un callback de progression.
+
+        :param cb: Fonction appelée avec la progression (0–100) à chaque pas.
+        """
         self._progress_callback = cb
 
-    def set_data_callback(self, cb: Callable[[Dict], None]) -> None:
-        """Appelé avec le dictionnaire de données à chaque pas de temps."""
+    def set_data_callback(self, cb: Callable[[Dict], None]):
+        """
+        Enregistre un callback de données.
+
+        :param cb: Fonction appelée avec le dictionnaire de données à chaque pas.
+        """
         self._data_callback = cb
 
     # ------------------------------------------------------------------
     # Contrôle depuis un thread externe
     # ------------------------------------------------------------------
 
-    def pause(self) -> None:
+    def pause(self):
+        """Met la simulation en pause (thread-safe via flag)."""
         self._paused = True
 
-    def resume(self) -> None:
+    def resume(self):
+        """Reprend la simulation après une pause."""
         self._paused = False
 
-    def stop(self) -> None:
+    def stop(self):
+        """Arrête la boucle de simulation à la prochaine itération."""
         self._running = False
 
     # ------------------------------------------------------------------
     # Boucle de simulation
     # ------------------------------------------------------------------
 
-    def _reset_anomalies(self) -> None:
+    def _reset_state(self):
+        """Réinitialise les anomalies STUCK et l'état d'échantillonnage de tous les capteurs."""
         for comp in self.composants:
+            for anomaly in getattr(comp, "anomalies", []):
+                anomaly.reset()
             for sensor in getattr(comp, "sensors", []):
-                for anomaly in sensor.anomalies:
-                    anomaly.reset()
+                sensor.reset()
 
     def run(self) -> List[Dict[str, Any]]:
         """Lance la boucle synchrone. À exécuter dans un QThread."""
@@ -84,7 +104,7 @@ class SimulationEngine:
         self.temps_actuel = 0.0
         self.historique_donnees.clear()
         self._running = True
-        self._reset_anomalies()
+        self._reset_state()
 
         while self._running and self.temps_actuel <= self.duree_totale:
             step_start = time.perf_counter()

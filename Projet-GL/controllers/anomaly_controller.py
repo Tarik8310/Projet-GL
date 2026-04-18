@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QDialog
 
-from models.sensor import Sensor
+from models.component import Component
 from simulation.anomaly import Anomaly
 from views.anomaly_dialog import AnomalyDialog
 
@@ -24,11 +24,11 @@ class AnomalyController:
         self._main = main_ctrl
         self.sim_duration: float = 10.0
 
-    def add_anomaly(self, sensor: Sensor) -> None:
+    def add_anomaly(self, component: Component):
         """
-        Ouvre AnomalyDialog, crée l'anomalie et l'injecte dans le capteur.
-        Utilise l'introspection (inspect) via la classe Anomaly pour
-        récupérer les attributs et les ajouter dynamiquement.
+        Ouvre AnomalyDialog, crée l'anomalie et l'injecte dans le composant.
+        L'anomalie affecte toutes les sorties du composant, simulant une
+        défaillance physique globale.
         """
         dialog = AnomalyDialog(self.sim_duration, self._main.gui)
         if dialog.exec_() != QDialog.Accepted:
@@ -40,20 +40,21 @@ class AnomalyController:
             start_time=data["start_time"],
             duration=data["duration"],
             magnitude=data["magnitude"],
+            mode=data["mode"],
         )
-        sensor.add_anomaly(anomaly)
+        component.add_anomaly(anomaly)
         self._main.refresh_tree()
         self._main.gui.statusBar().showMessage(
-            f"Anomalie '{anomaly.name}' ajoutée au capteur '{sensor.name}'."
+            f"Anomalie '{anomaly.name}' injectée sur le composant '{component.name}'."
         )
 
-    def delete_anomaly(self, anomaly: Anomaly) -> None:
-        """UC33 — Recherche et supprime l'anomalie du capteur qui la contient."""
+    def delete_anomaly(self, anomaly: Anomaly):
+        """UC33 — Recherche et supprime l'anomalie du composant qui la contient."""
         system = self._main.system_ctrl.system
         if system:
-            for sensor in system.get_all_sensors():
-                if anomaly in sensor.anomalies:
-                    sensor.remove_anomaly(anomaly)
+            for comp in system.components:
+                if anomaly in comp.anomalies:
+                    comp.remove_anomaly(anomaly)
                     break
         self._main.refresh_tree()
         self._main.gui.properties_panel.show_empty()

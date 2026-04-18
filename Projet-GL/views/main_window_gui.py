@@ -39,7 +39,7 @@ TRANSLATIONS = {
         "welcome_title": "Bienvenue dans LambdaSys",
         "step1": "<b>Étape 1</b> — 📂  Importez un système <i>(Fichier → Importer un système)</i>",
         "step2": "<b>Étape 2</b> — 📡  Configurez les capteurs sur chaque composant",
-        "step3": "<b>Étape 3</b> — ⚠  Injectez des anomalies sur les capteurs <i>(optionnel)</i>",
+        "step3": "<b>Étape 3</b> — ⚠  Injectez des anomalies sur les composants <i>(optionnel)</i>",
         "step4": "<b>Étape 4</b> — ▶  Lancez la simulation <i>(Simulation → Lancer)</i>",
         "step5": "<b>Étape 5</b> — 💾  Exportez les données au format CSV",
         "status_ready": "Prêt — Aucun système chargé."
@@ -67,7 +67,7 @@ TRANSLATIONS = {
         "welcome_title": "Welcome to LambdaSys",
         "step1": "<b>Step 1</b> — 📂  Import a system <i>(File → Import system)</i>",
         "step2": "<b>Step 2</b> — 📡  Configure sensors on each component",
-        "step3": "<b>Step 3</b> — ⚠  Inject anomalies on sensors <i>(optional)</i>",
+        "step3": "<b>Step 3</b> — ⚠  Inject anomalies on components <i>(optional)</i>",
         "step4": "<b>Step 4</b> — ▶  Launch the simulation <i>(Simulation → Launch)</i>",
         "step5": "<b>Step 5</b> — 💾  Export the data as CSV",
         "status_ready": "Ready — No system loaded."
@@ -75,7 +75,20 @@ TRANSLATIONS = {
 }
 
 class MainWindowGUI(QMainWindow):
+    """
+    Fenêtre principale de LambdaSys.
+
+    Construit les menus, la barre d'outils, les docks ancrables et la zone
+    centrale à onglets. Toute la logique métier est déléguée aux contrôleurs.
+    """
+
     def __init__(self, theme: str = "light", lang: str = "Français"):
+        """
+        Construit et affiche la fenêtre principale.
+
+        :param theme: Thème initial ('light' ou 'dark').
+        :param lang: Langue de l'interface ('Français' ou 'English').
+        """
         super().__init__()
         self._theme = theme
         self._language = lang
@@ -93,7 +106,8 @@ class MainWindowGUI(QMainWindow):
         self.retranslate_ui()
         self._apply_stylesheet()
 
-    def _build_menu(self) -> None:
+    def _build_menu(self):
+        """Construit la barre de menus avec toutes les actions de l'application."""
         menu = self.menuBar()
         self.file_menu = menu.addMenu("")
         self.action_import = QAction("", self)
@@ -127,7 +141,8 @@ class MainWindowGUI(QMainWindow):
         self.action_about = QAction("", self)
         self.help_menu.addAction(self.action_about)
 
-    def _build_toolbar(self) -> None:
+    def _build_toolbar(self):
+        """Construit la barre d'outils avec les actions principales."""
         self.toolbar = QToolBar("Barre principale")
         self.toolbar.setMovable(False)
         self.addToolBar(self.toolbar)
@@ -137,7 +152,8 @@ class MainWindowGUI(QMainWindow):
         self.toolbar.addAction(self.action_sim_launch)
         self.toolbar.addAction(self.action_export_csv)
 
-    def _build_docks(self) -> None:
+    def _build_docks(self):
+        """Crée les docks ancrables : explorateur système (gauche) et propriétés (droite)."""
         self.tree = QTreeWidget()
         self.dock_left = QDockWidget("", self)
         self.dock_left.setWidget(self.tree)
@@ -148,7 +164,8 @@ class MainWindowGUI(QMainWindow):
         self.dock_right.setWidget(self.properties_panel)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_right)
 
-    def _build_central(self) -> None:
+    def _build_central(self):
+        """Crée la zone centrale à onglets : accueil, simulation et données."""
         self.tabs = QTabWidget()
         self._welcome_label = QLabel()
         self._welcome_label.setAlignment(Qt.AlignCenter)
@@ -161,7 +178,7 @@ class MainWindowGUI(QMainWindow):
         self.tabs.addTab(self.data_panel, "📊")
         self.setCentralWidget(self.tabs)
 
-    def retranslate_ui(self) -> None:
+    def retranslate_ui(self):
         """Met à jour tous les textes selon la langue choisie."""
         t = TRANSLATIONS[self._language]
         
@@ -195,6 +212,12 @@ class MainWindowGUI(QMainWindow):
         self.statusBar().showMessage(t["status_ready"])
 
     def _welcome_html(self, theme: str) -> str:
+        """
+        Génère le HTML de la page d'accueil selon le thème et la langue.
+
+        :param theme: Thème courant ('light' ou 'dark').
+        :return: Chaîne HTML à injecter dans le QLabel central.
+        """
         t = TRANSLATIONS[self._language]
         title_color = "#ecf0f1" if theme == "dark" else "#2c3e50"
         step_color  = "#bdc3c7" if theme == "dark" else "#555555"
@@ -213,14 +236,21 @@ class MainWindowGUI(QMainWindow):
 
     @property
     def language(self) -> str:
+        """Retourne la langue active de l'interface ('Français' ou 'English')."""
         return self._language
 
-    def _apply_stylesheet(self) -> None:
+    def _apply_stylesheet(self):
+        """Applique la feuille de style Qt correspondant au thème courant."""
         self.setStyleSheet(ThemeManager.get_stylesheet(self._theme))
         bg = "#1e2d3a" if self._theme == "dark" else "white"
         self._welcome_label.setStyleSheet(f"background:{bg};")
 
-    def apply_theme(self, theme: str) -> None:
+    def apply_theme(self, theme: str):
+        """
+        Change le thème visuel de la fenêtre principale et de ses onglets.
+
+        :param theme: Nouveau thème ('light' ou 'dark').
+        """
         self._theme = theme
         self._apply_stylesheet()
         self.retranslate_ui()

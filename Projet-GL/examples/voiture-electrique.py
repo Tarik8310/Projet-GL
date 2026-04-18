@@ -25,7 +25,7 @@ class MoteurElectrique(Component):
         }
         self._vitesse = 0.0
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         # Accélération franche sur 8 s puis régime de croisière
         if t < 8.0:
             cible = 7_000.0 * (t / 8.0)
@@ -70,7 +70,7 @@ class BatterieHauteTension(Component):
         self._soc = 90.0          # State of Charge en %
         self._capacite_Wh = 80_000.0
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         charge = min(1.0, max(0.0, t / 8.0))
         # Courant de décharge fort à l'accélération, réduit en croisière
         if t < 8.0:
@@ -107,7 +107,7 @@ class Onduleur(Component):
             "frequence_commutation_kHz": 8.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         charge = min(1.0, max(0.0, t / 8.0))
         puissance = 250.0 * charge * (1.0 - 0.3 * min(1.0, (t - 8.0) / 5.0))
         puissance = max(0.0, puissance)
@@ -140,7 +140,7 @@ class GestionThermiqueBatterie(Component):
             "delta_T_batterie_C":        0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         charge = min(1.0, t / 10.0)
         # La pompe démarre dès que la batterie se charge
         self.outputs["debit_pompe_L_min"] = (
@@ -172,7 +172,7 @@ class ChargeurEmbarque(Component):
             "efficacite_pct":        0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         # En roulage, le chargeur est inactif (simulation véhicule en déplacement)
         # Il se comporte comme un composant au repos avec légères variations
         self.outputs["puissance_chargee_kW"] = 0.0

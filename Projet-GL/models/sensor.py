@@ -9,7 +9,12 @@ if TYPE_CHECKING:
 class Sensor:
     """
     Capteur attaché à un composant.
-    Lit une sortie spécifique du composant et applique les anomalies actives.
+    Lit une sortie spécifique du composant à la fréquence configurée.
+    Les anomalies sont portées par le composant et appliquées lors de
+    l'échantillonnage dans DataGen.
+
+    Entre deux instants d'échantillonnage, la dernière valeur mesurée est
+    conservée (comportement sample-and-hold).
     """
 
     def __init__(
@@ -19,29 +24,47 @@ class Sensor:
         unit: str = "-",
         frequency: float = 10.0,
     ):
+        """
+        Initialise le capteur sans composant associé.
+
+        :param name: Identifiant du capteur.
+        :param target_output: Clé dans ``component.outputs`` à mesurer.
+        :param unit: Unité physique affichée (ex : 'bar', '°C').
+        :param frequency: Fréquence d'échantillonnage en Hz.
+        """
         self.name: str = name
         self.target_output: str = target_output   # Clé dans component.outputs
         self.unit: str = unit
         self.frequency: float = frequency          # Hz
         self.component: Optional["Component"] = None
-        self.anomalies: list = []                  # Liste d'objets Anomaly
 
-    def read(self, t: float) -> float:
-        """Lit la valeur brute et applique les anomalies actives au temps t."""
-        if self.component is None or self.target_output not in self.component.outputs:
-            return float("nan")
-        value: float = self.component.outputs[self.target_output]
-        for anomaly in self.anomalies:
-            if anomaly.is_active(t):
-                value = anomaly.apply(value, t)
-        return value
+        # État interne d'échantillonnage
+        self._last_value: float = float("nan")
+        self._next_sample_t: float = 0.0
 
-    def add_anomaly(self, anomaly) -> None:
-        self.anomalies.append(anomaly)
+    def should_sample(self, t: float) -> bool:
+        """
+        Détermine si le capteur doit être échantillonné à l'instant t.
 
-    def remove_anomaly(self, anomaly) -> None:
-        if anomaly in self.anomalies:
-            self.anomalies.remove(anomaly)
+        Met à jour l'instant du prochain échantillonnage si True est retourné.
+        Si la fréquence est supérieure à celle de la simulation (1/dt),
+        le capteur est échantillonné à chaque pas de temps.
+
+        :param t: Instant courant de la simulation en secondes.
+        :return: True si une nouvelle mesure doit être prise.
+        """
+        if self.frequency <= 0:
+            return False
+        if t >= self._next_sample_t - 1e-9:
+            period = 1.0 / self.frequency
+            self._next_sample_t = t + period
+            return True
+        return False
+
+    def reset(self):
+        """Réinitialise la valeur mémorisée et le prochain instant d'échantillonnage."""
+        self._last_value = float("nan")
+        self._next_sample_t = 0.0
 
     def __repr__(self) -> str:
         return (

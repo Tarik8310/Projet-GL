@@ -25,7 +25,7 @@ class MoteurThermique(Component):
         }
         self._regime = 0.0
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         # Démarrage → ralenti 850 tr/min, puis montée en régime
         if t < 2.0:
             cible = 850.0 * min(1.0, t / 1.0)
@@ -66,7 +66,7 @@ class SystemeInjection(Component):
             "richesse":             1.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         charge = min(1.0, max(0.0, (t - 2.0) / 15.0))
         # Pression rail montée rapide dès démarrage (200 → 2 000 bar)
         self.outputs["pression_rail_bar"] = (
@@ -91,7 +91,7 @@ class TurboCompresseur(Component):
             "temperature_turbine_C":         20.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         # Le turbo monte en pression à partir de ~1 800 tr/min moteur (t>5 s)
         boost = min(1.0, max(0.0, (t - 5.0) / 8.0))
         self.outputs["pression_suralimentation_bar"] = (
@@ -121,7 +121,7 @@ class SystemeRefroidissementVoiture(Component):
             "temperature_radiateur_C":  20.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         charge = min(1.0, t / 8.0)
         self.outputs["debit_pompe_L_min"]   = (
             40.0 * charge + 2.0 * math.sin(t * 1.3)

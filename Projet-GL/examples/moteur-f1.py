@@ -23,7 +23,7 @@ class PompeLOX(Component):
         }
         self._vitesse_rotation = 0.0   # tr/min interne
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         # Montée en régime progressive sur les 2 premières secondes
         regime = min(1.0, t / 2.0)
         self._vitesse_rotation = 30_000 * regime
@@ -44,7 +44,7 @@ class PompeRP1(Component):
             "debit_massique_kg_s": 0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 2.0)
         self.outputs["pression_sortie_bar"] = 140.0 * regime
         self.outputs["debit_massique_kg_s"] = 900.0 * regime
@@ -61,7 +61,7 @@ class ChambrePoussee(Component):
             "pression_chambre_bar": 0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 2.5)
         self.outputs["temperature_combustion_C"] = 3_300.0 * regime
         self.outputs["poussee_kN"] = 6_770.0 * regime
@@ -78,7 +78,7 @@ class TurbopompeGaz(Component):
             "temperature_gaz_entree_C": 0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 2.0)
         self.outputs["vitesse_rotation_rpm"] = 36_000.0 * regime
         # Petites oscillations thermiques simulées

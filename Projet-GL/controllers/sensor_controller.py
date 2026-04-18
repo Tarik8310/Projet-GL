@@ -22,7 +22,7 @@ class SensorController:
     def __init__(self, main_ctrl: "MainWindowController"):
         self._main = main_ctrl
 
-    def add_sensor(self, component: Component) -> None:
+    def add_sensor(self, component: Component):
         """Ouvre SensorDialog et attache le capteur au composant."""
         dialog = SensorDialog(component, self._main.gui)
         if dialog.exec_() != QDialog.Accepted:
@@ -41,7 +41,7 @@ class SensorController:
             f"Capteur '{sensor.name}' ajouté à '{component.name}'."
         )
 
-    def delete_sensor(self, sensor: Sensor) -> None:
+    def delete_sensor(self, sensor: Sensor):
         """UC21 — Supprime un capteur après confirmation utilisateur."""
         reply = QMessageBox.question(
             self._main.gui,

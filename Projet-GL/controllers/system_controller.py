@@ -13,10 +13,20 @@ class SystemController:
     """Stocke le système actif et synchronise la vue (arbre)."""
 
     def __init__(self, main_ctrl: "MainWindowController"):
+        """
+        Initialise le contrôleur sans système actif.
+
+        :param main_ctrl: Référence au contrôleur principal.
+        """
         self._main = main_ctrl
         self.system: Optional[System] = None
 
-    def set_system(self, system: System) -> None:
+    def set_system(self, system: System):
+        """
+        Définit le système actif et rafraîchit l'interface.
+
+        :param system: Système importé à rendre actif.
+        """
         self.system = system
         self._main.refresh_tree()
         n = len(system.components)
@@ -26,7 +36,7 @@ class SystemController:
         self._main.gui.action_sim_launch.setEnabled(True)
         self._main.gui.action_add_sensor.setEnabled(True)
 
-    def toggle_component(self, comp: Component) -> None:
+    def toggle_component(self, comp: Component):
         """UC — Basculer l'état opérationnel d'un composant."""
         comp.is_operational = not comp.is_operational
         self._main.refresh_tree()

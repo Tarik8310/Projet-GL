@@ -24,7 +24,7 @@ class MoteurMoto(Component):
         }
         self._regime = 0.0
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         # Montée en régime : ralenti à 1 200 tr/min puis accélération progressive
         if t < 3.0:
             cible = 1_200.0
@@ -59,7 +59,7 @@ class Carburateur(Component):
             "richesse":                  0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, max(0.0, (t - 3.0) / 10.0))
         self.outputs["pression_alimentation_bar"] = (
             3.5 * min(1.0, t / 2.0) + 0.05 * math.sin(t * 5.0)
@@ -82,7 +82,7 @@ class SystemeRefroidissementMoto(Component):
             "temperature_radiateur_C": 20.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, t / 5.0)
         self.outputs["debit_pompe_L_min"] = (
             25.0 * regime + 0.8 * math.sin(t * 1.2)
@@ -108,7 +108,7 @@ class EchappementMoto(Component):
             "niveau_sonore_dB":         0.0,
         }
 
-    def update_state(self, dt: float, t: float) -> None:
+    def update_state(self, dt: float, t: float):
         regime = min(1.0, max(0.0, (t - 3.0) / 10.0))
         self.outputs["temperature_gaz_C"] = (
             100.0 + 550.0 * regime + 10.0 * math.sin(t * 1.5)

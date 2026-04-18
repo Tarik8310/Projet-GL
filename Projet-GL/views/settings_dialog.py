@@ -15,13 +15,20 @@ class SettingsDialog(QDialog):
     theme_changed = pyqtSignal(str)
 
     def __init__(self, current_theme: str, parent=None):
+        """
+        Construit le dialogue de paramètres avec le thème courant présélectionné.
+
+        :param current_theme: Thème actif ('light' ou 'dark').
+        :param parent: Widget Qt parent (facultatif).
+        """
         super().__init__(parent)
         self.setWindowTitle("Paramètres")
         self.setMinimumWidth(300)
         self._current_theme = current_theme
         self._build()
 
-    def _build(self) -> None:
+    def _build(self):
+        """Construit le formulaire de sélection du thème visuel."""
         layout = QVBoxLayout(self)
 
         group = QGroupBox("Thème de l'interface")
@@ -48,7 +55,8 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    def _on_accept(self) -> None:
+    def _on_accept(self):
+        """Émet le signal ``theme_changed`` avec le thème sélectionné et ferme le dialogue."""
         theme = "dark" if self._btn_dark.isChecked() else "light"
         self.theme_changed.emit(theme)
         self.accept()

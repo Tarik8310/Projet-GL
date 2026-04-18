@@ -24,6 +24,12 @@ class SystemFileInput:
     """
 
     def __init__(self, filepath: str):
+        """
+        Initialise le chargeur avec le chemin du fichier Python à importer.
+
+        :param filepath: Chemin absolu ou relatif vers le fichier ``.py`` du système.
+        :raises FileNotFoundError: Si le fichier n'existe pas.
+        """
         if not os.path.isfile(filepath):
             raise FileNotFoundError(f"Fichier introuvable : {filepath}")
         self.filepath: str = filepath
@@ -34,7 +40,11 @@ class SystemFileInput:
     def load(self) -> System:
         """
         Importe le module et instancie chaque sous-classe concrète de Component.
-        Lève ValueError si aucun composant concret n'est détecté.
+
+        :return: Instance de System contenant tous les composants détectés.
+        :raises ImportError: Si le fichier ne peut pas être chargé comme module Python.
+        :raises RuntimeError: Si le fichier appelle sys.exit() au niveau module.
+        :raises ValueError: Si aucune sous-classe concrète de Component n'est trouvée.
         """
         # Garantit que les packages du projet (models, simulation…) sont importables
         # même si l'application est lancée depuis un répertoire différent.

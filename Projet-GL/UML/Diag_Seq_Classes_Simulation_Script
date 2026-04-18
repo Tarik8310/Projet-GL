@@ -1,81 +1,59 @@
 @startuml
-skinparam style strictuml
-skinparam sequenceMessageAlign center
+actor "utilisateur" as c
+participant "MenuBarGUI" as barv
+participant "MenuBarController" as bar
+participant "SimulationGUI" as simv
+participant "SimulationController" as sim
+participant "Datagen" as dt
+participant "DataGUI" as dtv
+participant "Timer" as tm
+participant "CSVfileOutput" as csv
 
-actor "Utilisateur" as user
-participant "SimulationConfigDialog" as view
-participant "SimulationController" as ctrl
-participant "SimulationWorker" as worker
-participant "Engine" as engine
-participant "SimulationPanel" as panel
-participant "CSVFileOutput" as output
+c -> barv : Cliquer sur "Lancer"
+barv -> bar : Démarer la simulation
+bar -> simv : La fenêtre de simulation s'affiche
+simv -> sim : La simulation commence
 
-
-user -> view : Accède à "Gérer une simulation"
-view --> user : Affiche les options (Lancer, Pause, Stop)
-
-
-user -> view : Choisit "Lancer une simulation"
-
-alt E1 : Paramètres invalides
-    view -> view : Valider paramètres
-    view --> user : Message d'erreur (Retour étape 1)
-else Paramètres valides
-    view -> ctrl : launch()
-    ctrl -> engine : run()
-    ctrl -> worker : run()0
+loop Erreur Survenue
+note over sim, c : [Dans le cas d'une erreur de données, le contreleur vas nous renvoyer sue la fenêtre de départ pour modifier les paramétres puis on peut commencer la simulation en cliquant sur lancer et toutt le processus recommence
 end
 
+sim -> tm : Démarer le timer
+sim -> dt : Génération des données en temps réel
+dt -> dtv : Affichage des données en temps réel
 
-loop Jusqu'à la fin du temps (sim_duration)
-    engine -> engine : calculerEtat()
-    engine -> worker : data_generated()
-    worker -> panel : update_live_data()
-    panel --> user : Affiche résultats temps réel
-
-    alt A1 : Mettre en pause
-        user -> view : Cliquer sur Pause
-        view -> ctrl : pause_resume()
-        ctrl -> worker : pause_sim()
-        note over worker : Simulation suspendue
-        
-        opt Reprendre
-            user -> view : Cliquer sur Reprendre
-            view -> ctrl : pause_resume()
-            ctrl -> worker : resume_sim()
-        end
-        
-    else A2 : Arrêter prématurément
-        user -> view : Cliquer sur Arrêter
-        view -> ctrl : stop()
-        ctrl -> worker : stop_sim()
-        ctrl -> engine : stop()
-    end
+opt Mettre en pause une simulation 
+c -> simv : Mettre en pause 
+simv -> sim : Arrêt de la simulation en cours
+sim -> dt : Arrêter de donnée
+dt -> dtv : Arrêt d'affichage
+sim -> tm : Arrêt timer
 end
 
-worker --> ctrl : simulation_finished
-deactivate worker
-engine --> ctrl : fin de calcul
-deactivate engine
-
-ctrl -> view : Afficher boîte de dialogue "Enregistrer ?"
-view --> user : Propose l'enregistrement
-
-alt Scénario Nominal : Enregistrer
-    user -> view : Choisit "Enregistrer"
-    view -> ctrl : export_csv()
-    ctrl -> output : write(filepath, data)
-    activate output
-    output --> ctrl : confirmation
-    deactivate output
-    ctrl --> view : Succès
-    view --> user : Notification de sauvegarde
-else A3 : Ne pas enregistrer
-    user -> view : Choisit "Annuler"
-    view --> user : Fermeture de l'interface
+opt Reprendre la simulation
+c -> simv : Reprendre
+simv -> sim : Redémarer la simulation
+sim -> tm : Redémarer le timer
+sim -> dt : Génération des données en temps réel
+dt -> dtv : Affichage des données en temps réel
 end
 
-deactivate ctrl
-deactivate view
+opt Arrêter la simulation
+c -> simv : Arrêter
+simv -> sim : Arrêt de la simulation en cours
+sim -> dt : Arrêter de donnée
+dt -> dtv : Arrêt d'affichage
+sim -> tm : Arrêt timer
+end
 
+sim -> c : Fin de la simulation automatiquement 
+sim -> tm : Arrêt du timer
+sim -> dt : Arrêt de génèration des données
+dt -> dtv : Fin d'affichage des données
+
+opt Enregistrer les données
+c -> simv : Enregistrer
+simv -> sim : Enregistrer
+sim -> csv : Enregistrement de données
+end
 @enduml

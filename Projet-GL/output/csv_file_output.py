@@ -11,10 +11,20 @@ class CSVFileOutput:
     """
 
     def __init__(self, filepath: str):
+        """
+        Initialise l'exporteur avec le chemin de destination.
+
+        :param filepath: Chemin complet du fichier CSV à créer.
+        """
         self.filepath: str = filepath
 
     def write(self, data: List[Dict[str, Any]]) -> bool:
-        """Écrit les données dans le fichier CSV. Retourne True si succès."""
+        """
+        Écrit les données dans le fichier CSV.
+
+        :param data: Liste de dictionnaires colonne → valeur à exporter.
+        :return: True si l'export s'est déroulé sans erreur, False sinon.
+        """
         if not data:
             print("[CSV] Aucune donnée à exporter.")
             return False
@@ -31,5 +41,11 @@ class CSVFileOutput:
 
     @classmethod
     def export(cls, data: List[Dict[str, Any]], filepath: str) -> bool:
-        """Raccourci : instancie et écrit en une seule ligne."""
+        """
+        Raccourci d'export : instancie CSVFileOutput et écrit en une seule ligne.
+
+        :param data: Liste de dictionnaires colonne → valeur.
+        :param filepath: Chemin du fichier CSV de destination.
+        :return: True si l'export réussit, False sinon.
+        """
         return cls(filepath).write(data)

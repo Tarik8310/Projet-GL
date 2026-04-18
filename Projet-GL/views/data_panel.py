@@ -1,32 +1,38 @@
 # views/data_panel.py
-"""DataPanel — tableau de données post-simulation avec filtrage, tri et formatage."""
-from typing import Any, Dict, List
+"""DataPanel — tableau de données post-simulation avec filtrage, tri et formatage (pandas)."""
+from typing import List, Optional
 
-from PyQt5.QtCore import Qt
+import pandas as pd
+from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import (
-    QAbstractItemView, QHeaderView, QHBoxLayout, QLabel,
-    QLineEdit, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QAbstractItemView, QCheckBox, QHeaderView, QHBoxLayout, QLabel,
+    QLineEdit, QTableView, QVBoxLayout, QWidget,
 )
 
 # ---------------------------------------------------------------------------
 # Couleurs des en-têtes selon le type de colonne
 # ---------------------------------------------------------------------------
-_COL_TIME    = ("#1a6fa3", "#ffffff")   # bleu  — Temps_s
-_COL_OUTPUT  = ("#1a7a5e", "#ffffff")   # vert  — sorties brutes composant
-_COL_SENSOR  = ("#a05c00", "#ffffff")   # orange — capteurs (contient "[")
+_COL_TIME    = ("#1a6fa3", "#ffffff")   # bleu       — Temps_s
+_COL_OUTPUT  = ("#1a7a5e", "#ffffff")   # vert       — sorties brutes composant
+_COL_SENSOR  = ("#a05c00", "#ffffff")   # orange     — capteurs (contient "[")
+_COL_ANOMALY = ("#7b1a1a", "#ffaaaa")   # rouge foncé — colonnes label _anomalie
+
+# Fond des lignes anomales selon le thème
+_ROW_ANOM_DARK  = QColor("#3d1212")
+_ROW_ANOM_LIGHT = QColor("#ffe4e4")
 
 _DARK_STYLE = """
-    QTableWidget {
+    QTableView {
         background:#1e2d3a;
         color:#ecf0f1;
         gridline-color:#2c3e50;
         border:none;
         font-size:12px;
     }
-    QTableWidget::item { padding: 4px 8px; }
-    QTableWidget::item:selected { background:#3498db; color:#ffffff; }
-    QTableWidget::item:alternate { background:#16202a; }
+    QTableView::item { padding: 4px 8px; }
+    QTableView::item:selected { background:#3498db; color:#ffffff; }
+    QTableView::item:alternate { background:#16202a; }
     QHeaderView::section {
         padding: 6px 8px;
         font-weight: 600;
@@ -42,16 +48,16 @@ _DARK_STYLE = """
 """
 
 _LIGHT_STYLE = """
-    QTableWidget {
+    QTableView {
         background:#ffffff;
         color:#2c3e50;
         gridline-color:#dee2e6;
         border:none;
         font-size:12px;
     }
-    QTableWidget::item { padding: 4px 8px; }
-    QTableWidget::item:selected { background:#3498db; color:#ffffff; }
-    QTableWidget::item:alternate { background:#f4f6f8; }
+    QTableView::item { padding: 4px 8px; }
+    QTableView::item:selected { background:#3498db; color:#ffffff; }
+    QTableView::item:alternate { background:#f4f6f8; }
     QHeaderView::section {
         padding: 6px 8px;
         font-weight: 600;
@@ -68,16 +74,141 @@ _LIGHT_STYLE = """
 
 
 # ---------------------------------------------------------------------------
-# Item numérique pour tri correct
+# Modèle pandas → Qt
 # ---------------------------------------------------------------------------
 
-class _NumItem(QTableWidgetItem):
-    """QTableWidgetItem qui trie numériquement quand c'est possible."""
-    def __lt__(self, other: QTableWidgetItem) -> bool:
-        try:
-            return float(self.text()) < float(other.text())
-        except ValueError:
-            return self.text() < other.text()
+def _header_colors(col: str):
+    """
+    Retourne le couple (couleur fond, couleur texte) pour un en-tête de colonne.
+
+    :param col: Nom de la colonne.
+    :return: Tuple (bg_hex, fg_hex).
+    """
+    if col == "Temps_s":
+        return _COL_TIME
+    if col.endswith("_anomalie"):
+        return _COL_ANOMALY
+    if "[" in col:
+        return _COL_SENSOR
+    return _COL_OUTPUT
+
+
+class PandasModel(QAbstractTableModel):
+    """
+    Modèle Qt alimenté par un DataFrame pandas.
+
+    Gère l'affichage, la coloration des lignes anomales,
+    la coloration des en-têtes et le tri par colonne.
+    """
+
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        anomaly_col_indices: List[int],
+        theme: str = "light",
+        total_rows: int = 0,
+    ):
+        """
+        Initialise le modèle avec un DataFrame et les métadonnées de thème.
+
+        :param df: DataFrame pandas à afficher (éventuellement filtré).
+        :param anomaly_col_indices: Indices des colonnes dont le nom se termine par '_anomalie'.
+        :param theme: Thème visuel courant ('light' ou 'dark').
+        :param total_rows: Nombre total de lignes avant filtrage (pour le compteur).
+        """
+        super().__init__()
+        self._df = df.reset_index(drop=True)
+        self._anomaly_col_indices = anomaly_col_indices
+        self._theme = theme
+        self.total_rows = total_rows
+
+    # ------------------------------------------------------------------
+    # Méthodes obligatoires
+    # ------------------------------------------------------------------
+
+    def rowCount(self, parent=QModelIndex()):
+        """Retourne le nombre de lignes du DataFrame affiché."""
+        return len(self._df)
+
+    def columnCount(self, parent=QModelIndex()):
+        """Retourne le nombre de colonnes du DataFrame affiché."""
+        return len(self._df.columns)
+
+    def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+        """
+        Fournit la donnée d'une cellule selon le rôle Qt demandé.
+
+        :param index: Index de la cellule.
+        :param role: Rôle Qt (DisplayRole, BackgroundRole, TextAlignmentRole).
+        :return: Valeur correspondante, ou None si non applicable.
+        """
+        if not index.isValid():
+            return None
+
+        row, col = index.row(), index.column()
+        val = self._df.iat[row, col]
+
+        if role == Qt.DisplayRole:
+            return f"{val:.6f}" if isinstance(val, float) else str(val)
+
+        if role == Qt.BackgroundRole:
+            is_anomalous = any(
+                self._df.iat[row, c] == 1
+                for c in self._anomaly_col_indices
+                if c < len(self._df.columns)
+            )
+            if is_anomalous:
+                return _ROW_ANOM_DARK if self._theme == "dark" else _ROW_ANOM_LIGHT
+
+        if role == Qt.TextAlignmentRole:
+            if isinstance(val, (int, float)):
+                return Qt.AlignRight | Qt.AlignVCenter
+            return Qt.AlignLeft | Qt.AlignVCenter
+
+        return None
+
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole):
+        """
+        Fournit les données des en-têtes horizontaux (nom + couleurs).
+
+        :param section: Indice de la colonne.
+        :param orientation: Qt.Horizontal uniquement (les en-têtes verticaux sont masqués).
+        :param role: Rôle Qt (DisplayRole, BackgroundRole, ForegroundRole).
+        :return: Valeur correspondante, ou None si non applicable.
+        """
+        if orientation != Qt.Horizontal:
+            return None
+
+        col_name = self._df.columns[section]
+
+        if role == Qt.DisplayRole:
+            return col_name
+        if role == Qt.BackgroundRole:
+            return QColor(_header_colors(col_name)[0])
+        if role == Qt.ForegroundRole:
+            return QColor(_header_colors(col_name)[1])
+
+        return None
+
+    # ------------------------------------------------------------------
+    # Tri par colonne
+    # ------------------------------------------------------------------
+
+    def sort(self, column: int, order: Qt.SortOrder):
+        """
+        Trie le DataFrame selon la colonne et l'ordre indiqués.
+
+        :param column: Indice de la colonne de tri.
+        :param order: Qt.AscendingOrder ou Qt.DescendingOrder.
+        """
+        self.layoutAboutToBeChanged.emit()
+        col_name = self._df.columns[column]
+        self._df = self._df.sort_values(
+            col_name,
+            ascending=(order == Qt.AscendingOrder),
+            ignore_index=True,
+        )
+        self.layoutChanged.emit()
 
 
 # ---------------------------------------------------------------------------
@@ -86,22 +217,35 @@ class _NumItem(QTableWidgetItem):
 
 class DataPanel(QWidget):
     """
-    Affiche les données de simulation dans un tableau stylisé.
-    Fonctionnalités : filtrage en temps réel, tri par colonne,
-    en-têtes colorés par type, compteur de lignes.
+    Affiche les données de simulation dans un tableau stylisé (QTableView + pandas).
+
+    Fonctionnalités :
+    - Filtrage texte en temps réel via pandas str.contains
+    - Filtre «Anomalies uniquement» (lignes où une colonne _anomalie vaut 1)
+    - Tri par colonne géré directement dans le DataFrame
+    - En-têtes colorés par type (temps / sortie brute / capteur / label anomalie)
+    - Lignes anomales colorées en rouge
+    - Compteur de lignes visibles / total
     """
 
     def __init__(self, theme: str = "light", parent=None):
+        """
+        Construit le panneau de données avec barre de recherche et tableau.
+
+        :param theme: Thème visuel initial ('light' ou 'dark').
+        :param parent: Widget Qt parent (facultatif).
+        """
         super().__init__(parent)
         self._theme = theme
-        self._all_data: List[Dict[str, Any]] = []
-        self._headers: List[str] = []
+        self._df_full: Optional[pd.DataFrame] = None       # données complètes
+        self._df_current: Optional[pd.DataFrame] = None    # vue filtrée courante
+        self._anomaly_col_indices: List[int] = []
 
         layout = QVBoxLayout(self)
         layout.setSpacing(8)
         layout.setContentsMargins(8, 8, 8, 8)
 
-        # --- Barre de recherche + compteur ---
+        # --- Barre de recherche + filtres + compteur ---
         bar = QHBoxLayout()
         bar.setSpacing(10)
 
@@ -111,8 +255,13 @@ class DataPanel(QWidget):
         self._search.textChanged.connect(self._apply_filter)
         bar.addWidget(self._search)
 
+        self._anom_only = QCheckBox("⚠  Anomalies uniquement")
+        self._anom_only.setFixedHeight(32)
+        self._anom_only.toggled.connect(self._apply_filter)
+        bar.addWidget(self._anom_only)
+
         self._counter = QLabel("0 ligne")
-        self._counter.setFixedWidth(100)
+        self._counter.setFixedWidth(120)
         self._counter.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         counter_font = QFont()
         counter_font.setPointSize(10)
@@ -121,8 +270,8 @@ class DataPanel(QWidget):
 
         layout.addLayout(bar)
 
-        # --- Tableau ---
-        self.table = QTableWidget()
+        # --- Tableau (QTableView) ---
+        self.table = QTableView()
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -141,107 +290,108 @@ class DataPanel(QWidget):
     # Interface publique
     # ------------------------------------------------------------------
 
-    def load_data(self, data: List[Dict[str, Any]]) -> None:
-        """Charge toutes les données dans le tableau après la simulation."""
+    def load_data(self, data: list):
+        """
+        Charge les données de simulation dans le tableau via un DataFrame pandas.
+
+        :param data: Liste de dictionnaires colonne → valeur produits par DataGen.
+        """
         if not data:
             return
-        self._all_data = data
-        self._headers = list(data[0].keys())
-        self._populate(data)
+        self._df_full = pd.DataFrame(data)
+        self._anomaly_col_indices = [
+            i for i, col in enumerate(self._df_full.columns)
+            if col.endswith("_anomalie")
+        ]
+        self._show_df(self._df_full)
 
-    def clear_data(self) -> None:
-        self._all_data.clear()
-        self._headers.clear()
-        self.table.setRowCount(0)
-        self.table.setColumnCount(0)
+    def clear_data(self):
+        """Vide le tableau et réinitialise tous les états de filtrage."""
+        self._df_full = None
+        self._df_current = None
+        self._anomaly_col_indices = []
+        self.table.setModel(None)
         self._search.clear()
+        self._anom_only.setChecked(False)
         self._counter.setText("0 ligne")
 
-    def set_theme(self, theme: str) -> None:
+    def set_theme(self, theme: str):
+        """
+        Met à jour le thème visuel du tableau et recharge la vue courante.
+
+        :param theme: Thème visuel ('light' ou 'dark').
+        """
         self._theme = theme
         self._apply_style()
-        # Réappliquer les couleurs d'en-tête si des données sont chargées
-        if self._headers:
-            self._color_headers()
+        if self._df_current is not None:
+            self._show_df(self._df_current)
 
     # ------------------------------------------------------------------
     # Interne
     # ------------------------------------------------------------------
 
-    def _populate(self, rows: List[Dict[str, Any]]) -> None:
-        """Remplit le tableau et applique le style des en-têtes."""
-        self.table.setSortingEnabled(False)  # désactiver pendant le remplissage
+    def _show_df(self, df: pd.DataFrame):
+        """
+        Crée un PandasModel à partir du DataFrame fourni et l'assigne au tableau.
 
-        self.table.setColumnCount(len(self._headers))
-        self.table.setHorizontalHeaderLabels(self._headers)
-        self.table.setRowCount(len(rows))
+        :param df: DataFrame à afficher (complet ou filtré).
+        """
+        self._df_current = df
+        total = len(self._df_full) if self._df_full is not None else 0
+        model = PandasModel(df, self._anomaly_col_indices, self._theme, total)
+        self.table.setModel(model)
+        self._update_counter(len(df))
 
-        for r, row in enumerate(rows):
-            for c, key in enumerate(self._headers):
-                raw = row.get(key, "")
-                item = _NumItem(self._fmt(raw))
-                item.setTextAlignment(
-                    Qt.AlignRight | Qt.AlignVCenter
-                    if isinstance(raw, (int, float))
-                    else Qt.AlignLeft | Qt.AlignVCenter
-                )
-                self.table.setItem(r, c, item)
+    def _apply_filter(self, _=None):
+        """
+        Recharge le tableau avec les lignes correspondant aux filtres actifs.
 
-        self._color_headers()
-        self.table.setSortingEnabled(True)
-        self._update_counter(len(rows))
+        Applique successivement :
+        1. Le filtre «Anomalies uniquement» (colonnes _anomalie == 1).
+        2. Le filtre texte (recherche dans toutes les colonnes converties en str).
+        """
+        if self._df_full is None:
+            return
 
-    def _color_headers(self) -> None:
-        """Colorie les cellules d'en-tête selon le type de colonne."""
-        header = self.table.horizontalHeader()
-        for c, col in enumerate(self._headers):
-            item = self.table.horizontalHeaderItem(c)
-            if item is None:
-                continue
-            bg_hex, fg_hex = self._header_colors(col)
-            item.setBackground(QColor(bg_hex))
-            item.setForeground(QColor(fg_hex))
+        df = self._df_full
 
-    def _header_colors(self, col: str):
-        if col == "Temps_s":
-            return _COL_TIME
-        if "[" in col:
-            return _COL_SENSOR
-        return _COL_OUTPUT
+        # Filtre anomalies uniquement
+        if self._anom_only.isChecked() and self._anomaly_col_indices:
+            anom_cols = [df.columns[i] for i in self._anomaly_col_indices]
+            df = df[(df[anom_cols] == 1).any(axis=1)]
 
-    def _apply_filter(self, text: str) -> None:
-        """Affiche uniquement les lignes dont une cellule contient le texte."""
-        text = text.strip().lower()
-        visible = 0
-        for r in range(self.table.rowCount()):
-            match = not text or any(
-                text in (self.table.item(r, c).text().lower() if self.table.item(r, c) else "")
-                for c in range(self.table.columnCount())
-            )
-            self.table.setRowHidden(r, not match)
-            if match:
-                visible += 1
-        self._update_counter(visible)
+        # Filtre texte
+        text = self._search.text().strip().lower()
+        if text:
+            mask = df.astype(str).apply(
+                lambda col: col.str.lower().str.contains(text, regex=False)
+            ).any(axis=1)
+            df = df[mask]
 
-    def _update_counter(self, count: int) -> None:
-        total = len(self._all_data)
+        self._show_df(df)
+
+    def _update_counter(self, count: int):
+        """
+        Met à jour le libellé du compteur de lignes visibles.
+
+        :param count: Nombre de lignes actuellement affichées.
+        """
+        total = len(self._df_full) if self._df_full is not None else 0
         if count == total:
-            self._counter.setText(f"{total:,} ligne{'s' if total > 1 else ''}".replace(",", " "))
+            self._counter.setText(
+                f"{total:,} ligne{'s' if total > 1 else ''}".replace(",", " ")
+            )
         else:
             self._counter.setText(f"{count:,} / {total:,}".replace(",", " "))
 
-    @staticmethod
-    def _fmt(value: Any) -> str:
-        if isinstance(value, float):
-            return f"{value:.6f}"
-        return str(value)
-
-    def _apply_style(self) -> None:
+    def _apply_style(self):
+        """Applique la feuille de style QSS du tableau selon le thème courant."""
         style = _DARK_STYLE if self._theme == "dark" else _LIGHT_STYLE
         self.table.setStyleSheet(style)
 
-        # Couleur du compteur et de la barre de recherche selon le thème
         if self._theme == "dark":
             self._counter.setStyleSheet("color:#bdc3c7;")
+            self._anom_only.setStyleSheet("color:#e74c3c; font-weight:600;")
         else:
             self._counter.setStyleSheet("color:#7f8c8d;")
+            self._anom_only.setStyleSheet("color:#c0392b; font-weight:600;")

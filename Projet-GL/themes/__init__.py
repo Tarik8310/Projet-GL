@@ -15,6 +15,7 @@ _CONFIG_PATH = os.path.join(
 # ---------------------------------------------------------------------------
 
 def _light_palette() -> QPalette:
+    """Construit et retourne la palette Qt pour le thème clair."""
     p = QPalette()
     p.setColor(QPalette.Window,          QColor("#ecf0f1"))
     p.setColor(QPalette.WindowText,      QColor("#2c3e50"))
@@ -29,6 +30,7 @@ def _light_palette() -> QPalette:
 
 
 def _dark_palette() -> QPalette:
+    """Construit et retourne la palette Qt pour le thème sombre."""
     p = QPalette()
     p.setColor(QPalette.Window,          QColor("#1a252f"))
     p.setColor(QPalette.WindowText,      QColor("#ecf0f1"))
@@ -172,6 +174,11 @@ class ThemeManager:
 
     @staticmethod
     def _read_config() -> dict:
+        """
+        Lit le fichier config.json et retourne son contenu.
+
+        :return: Dictionnaire de configuration, ou dict vide en cas d'erreur.
+        """
         try:
             with open(_CONFIG_PATH, encoding="utf-8") as f:
                 return json.load(f)
@@ -179,7 +186,12 @@ class ThemeManager:
             return {}
 
     @staticmethod
-    def _write_config(config: dict) -> None:
+    def _write_config(config: dict):
+        """
+        Écrit le dictionnaire de configuration dans config.json.
+
+        :param config: Dictionnaire à sérialiser en JSON.
+        """
         with open(_CONFIG_PATH, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
@@ -189,7 +201,7 @@ class ThemeManager:
         return ThemeManager._read_config().get("theme", "light")
 
     @staticmethod
-    def save_theme(theme: str) -> None:
+    def save_theme(theme: str):
         """Persiste le thème dans config.json."""
         config = ThemeManager._read_config()
         config["theme"] = theme
@@ -201,7 +213,7 @@ class ThemeManager:
         return ThemeManager._read_config().get("lang", "Français")
 
     @staticmethod
-    def save_lang(lang: str) -> None:
+    def save_lang(lang: str):
         """Persiste la langue dans config.json."""
         config = ThemeManager._read_config()
         config["lang"] = lang
@@ -209,12 +221,30 @@ class ThemeManager:
 
     @staticmethod
     def get_palette(theme: str) -> QPalette:
+        """
+        Retourne la palette Qt correspondant au thème.
+
+        :param theme: Identifiant du thème ('light' ou 'dark').
+        :return: Instance QPalette configurée.
+        """
         return _dark_palette() if theme == "dark" else _light_palette()
 
     @staticmethod
     def get_stylesheet(theme: str) -> str:
+        """
+        Retourne la feuille de style QSS globale pour le thème.
+
+        :param theme: Identifiant du thème ('light' ou 'dark').
+        :return: Chaîne QSS.
+        """
         return _DARK_QSS if theme == "dark" else _LIGHT_QSS
 
     @staticmethod
     def get_tree_stylesheet(theme: str) -> str:
+        """
+        Retourne la feuille de style QSS spécifique à l'arbre latéral.
+
+        :param theme: Identifiant du thème ('light' ou 'dark').
+        :return: Chaîne QSS.
+        """
         return _DARK_TREE_QSS if theme == "dark" else _LIGHT_TREE_QSS
