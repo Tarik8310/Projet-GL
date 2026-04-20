@@ -216,15 +216,118 @@ class MainWindowController:
         self.gui.apply_theme(theme)
 
     def _show_about(self):
-        """Affiche la boîte de dialogue «À propos» de LambdaSys."""
-        QMessageBox.about(
-            self.gui,
-            "À propos de LambdaSys",
-            "<h3>LambdaSys</h3>"
-            "<p>Simulateur générique de systèmes techniques<br>"
-            "pour la génération de données de maintenance prédictive</p>"
-            "<p>Projet Génie Logiciel &amp; IA — 2025-2026</p>",
+        """Affiche la boîte de dialogue «À propos / Aide» de LambdaSys."""
+        from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QTextEdit, QVBoxLayout
+        from PyQt5.QtCore import Qt
+
+        _CONTENT = {
+            "Français": (
+                "LambdaSys — Simulateur de Systèmes Techniques\n"
+                "Projet Génie Logiciel & IA — 2025-2026\n"
+                "================================================\n\n"
+                "PRÉSENTATION\n"
+                "  LambdaSys est un simulateur générique de systèmes techniques destiné\n"
+                "  à la génération de données de capteurs pour la maintenance prédictive.\n\n"
+                "PRISE EN MAIN RAPIDE\n"
+                "  1. Importer un système\n"
+                "       Fichier > Importer un système\n"
+                "       Chargez un fichier Python décrivant votre système.\n\n"
+                "  2. Configurer les capteurs\n"
+                "       Capteurs > Ajouter un capteur\n"
+                "       Associez des capteurs à chaque composant (type, unité, plage, bruit).\n\n"
+                "  3. Injecter des anomalies  (optionnel)\n"
+                "       Anomalies > Créer une anomalie\n"
+                "       Simulez des défauts en mode absolu ou relatif.\n\n"
+                "  4. Lancer la simulation\n"
+                "       Simulation > Lancer la simulation\n"
+                "       Configurez la durée, le pas de temps et le bruit global.\n\n"
+                "  5. Exporter les données\n"
+                "       Fichier > Exporter les données CSV\n"
+                "       Sauvegardez les séries temporelles générées.\n\n"
+                "TYPES D'ANOMALIES\n"
+                "  OFFSET   — Décalage constant de la valeur du capteur.\n"
+                "  DRIFT    — Dérive progressive au fil du temps.\n"
+                "  NOISE    — Augmentation du bruit sur la mesure.\n"
+                "  STUCK    — Valeur figée (capteur bloqué).\n"
+                "  FAILURE  — Panne franche (valeur nulle ou hors plage).\n\n"
+                "GÉNÉRATION ALÉATOIRE\n"
+                "  Le bouton « Générer aléatoirement » remplit automatiquement tous les\n"
+                "  paramètres d'une anomalie avec des valeurs cohérentes.\n\n"
+                "CONSEILS\n"
+                "  - Utilisez les exemples fournis (moteur voiture, moto, F1...) comme\n"
+                "    point de départ pour créer vos propres systèmes.\n"
+                "  - Mode RELATIF : magnitude en % de la valeur nominale.\n"
+                "  - Mode ABSOLU  : magnitude dans les unités du capteur.\n"
+                "  - La simulation peut être mise en pause sans perdre les données.\n\n"
+                "FORMAT DE SYSTÈME IMPORTABLE\n"
+                "  Un fichier .py définissant create_system() -> System.\n"
+                "  Voir le dossier examples/ pour la syntaxe complète.\n"
+            ),
+            "English": (
+                "LambdaSys — Technical Systems Simulator\n"
+                "Software Engineering & AI Project — 2025-2026\n"
+                "===============================================\n\n"
+                "OVERVIEW\n"
+                "  LambdaSys is a generic technical-system simulator designed for\n"
+                "  generating sensor data for predictive maintenance.\n\n"
+                "QUICK START\n"
+                "  1. Import a system\n"
+                "       File > Import system\n"
+                "       Load a Python file describing your system.\n\n"
+                "  2. Configure sensors\n"
+                "       Sensors > Add sensor\n"
+                "       Attach sensors to each component (type, unit, range, noise).\n\n"
+                "  3. Inject anomalies  (optional)\n"
+                "       Anomalies > Create anomaly\n"
+                "       Simulate faults in absolute or relative mode.\n\n"
+                "  4. Launch the simulation\n"
+                "       Simulation > Launch simulation\n"
+                "       Set duration, time step and global noise.\n\n"
+                "  5. Export the data\n"
+                "       File > Export CSV data\n"
+                "       Save the generated time series.\n\n"
+                "ANOMALY TYPES\n"
+                "  OFFSET   — Constant shift applied to the sensor value.\n"
+                "  DRIFT    — Progressive drift over time.\n"
+                "  NOISE    — Increased noise on the measurement.\n"
+                "  STUCK    — Frozen value (stuck sensor).\n"
+                "  FAILURE  — Hard failure (zero or out-of-range value).\n\n"
+                "RANDOM GENERATION\n"
+                "  The 'Generate randomly' button auto-fills all anomaly parameters\n"
+                "  with coherent values.\n\n"
+                "TIPS\n"
+                "  - Use the provided examples (car engine, motorbike, F1...) as a\n"
+                "    starting point for your own systems.\n"
+                "  - RELATIVE mode: magnitude as % of nominal value.\n"
+                "  - ABSOLUTE mode: magnitude in sensor units.\n"
+                "  - The simulation can be paused without losing generated data.\n\n"
+                "IMPORTABLE SYSTEM FORMAT\n"
+                "  A .py file defining create_system() -> System.\n"
+                "  See the examples/ folder for the full syntax.\n"
+            ),
+        }
+
+        dlg = QDialog(self.gui)
+        dlg.setWindowTitle(
+            "À propos de LambdaSys" if self._lang == "Français" else "About LambdaSys"
         )
+        dlg.setWindowFlags(dlg.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        dlg.resize(620, 500)
+
+        layout = QVBoxLayout(dlg)
+        layout.setContentsMargins(16, 16, 16, 12)
+
+        text = QTextEdit()
+        text.setReadOnly(True)
+        text.setPlainText(_CONTENT.get(self._lang, _CONTENT["Français"]))
+        text.setFrameShape(QTextEdit.NoFrame)
+        layout.addWidget(text)
+
+        btns = QDialogButtonBox(QDialogButtonBox.Close)
+        btns.rejected.connect(dlg.reject)
+        layout.addWidget(btns)
+
+        dlg.exec_()
 
     def run(self):
         """Affiche la fenêtre principale et démarre la boucle d'événements Qt."""

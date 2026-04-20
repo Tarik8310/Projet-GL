@@ -112,7 +112,7 @@ class Anomaly:
 
     @classmethod
     def create_random(cls, name: str, total_duration: float) -> "Anomaly":
-        """UC34 — Génère une anomalie avec des paramètres aléatoires."""
+        """Génère une anomalie avec des paramètres aléatoires."""
         mode = random.choice(list(AnomalyMode))
         if mode == AnomalyMode.RELATIVE:
             magnitude = round(random.uniform(5.0, 50.0), 2)

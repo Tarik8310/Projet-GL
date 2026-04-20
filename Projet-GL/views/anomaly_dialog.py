@@ -14,7 +14,6 @@ from simulation.anomaly import AnomalyMode, AnomalyType
 class AnomalyDialog(QDialog):
     """
     UC30 — Créer une anomalie.
-    UC34 — Créer aléatoirement.
     UC35 — Paramétrer une anomalie.
     """
 
@@ -82,7 +81,7 @@ class AnomalyDialog(QDialog):
 
         layout.addWidget(group)
 
-        btn_random = QPushButton("🎲  Générer aléatoirement (UC34)")
+        btn_random = QPushButton("🎲  Générer aléatoirement")
         btn_random.setStyleSheet(
             "background-color:#3498db; color:white; padding:6px; border-radius:4px;"
         )
@@ -107,7 +106,7 @@ class AnomalyDialog(QDialog):
             self.magnitude_spin.setValue(50.0)
 
     def _randomize(self):
-        """Remplit tous les champs avec des valeurs aléatoires (UC34)."""
+        """Remplit tous les champs avec des valeurs aléatoires."""
         self.name_edit.setText(f"anomalie_{random.randint(100, 999)}")
         self.type_combo.setCurrentIndex(random.randint(0, self.type_combo.count() - 1))
         mode = random.choice(list(AnomalyMode))

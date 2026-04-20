@@ -16,8 +16,7 @@ class AnomalyController:
     """
     UC30 — Créer une anomalie.
     UC33 — Supprimer une anomalie.
-    UC34 — Créer aléatoirement.
-    UC35 — Paramétrer une anomalie.
+UC35 — Paramétrer une anomalie.
     """
 
     def __init__(self, main_ctrl: "MainWindowController"):
