@@ -94,7 +94,7 @@ source env/bin/activate          # Linux / macOS
 env\Scripts\activate             # Windows
 
 # 4. Installer les dépendances
-pip install PyQt5 pyqtgraph numpy pandas
+pip install PyQt5 pyqtgraph pandas
 ```
 
 > **Note Linux (PEP 668)** : si pip refuse d'installer dans l'environnement système,
