@@ -86,7 +86,7 @@ class MainWindowController:
         gui.action_settings.triggered.connect(self._on_settings)
 
         # Aide
-        gui.action_about.triggered.connect(self._show_about)
+        gui.action_help.triggered.connect(self._show_about)
 
         # Arbre
         gui.tree.itemClicked.connect(self._on_tree_item_clicked)

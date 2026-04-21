@@ -3,9 +3,10 @@
 
 from PyQt5.QtWidgets import (
     QAction, QDockWidget, QLabel, QMainWindow,
-    QTabWidget, QToolBar, QTreeWidget,
+    QTabWidget, QTreeWidget,
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence
 
 from views.properties_panel import PropertiesPanel
 from views.simulation_panel import SimulationPanel
@@ -32,8 +33,7 @@ TRANSLATIONS = {
         "stop": "⏹  Arrêter",
         "view": "&Affichage",
         "settings": "⚙  Paramètres...",
-        "help": "&Aide",
-        "about": "À propos",
+        "help_btn": "❓  Aide",
         "explorer": "Explorateur du système",
         "properties": "Propriétés",
         "welcome_title": "Bienvenue dans LambdaSys",
@@ -60,8 +60,7 @@ TRANSLATIONS = {
         "stop": "⏹  Stop",
         "view": "&View",
         "settings": "⚙  Settings...",
-        "help": "&Help",
-        "about": "About",
+        "help_btn": "❓  Help",
         "explorer": "System Explorer",
         "properties": "Properties",
         "welcome_title": "Welcome to LambdaSys",
@@ -98,7 +97,6 @@ class MainWindowGUI(QMainWindow):
 
         # Initialisation des composants
         self._build_menu()
-        self._build_toolbar()
         self._build_docks()
         self._build_central()
         
@@ -127,8 +125,11 @@ class MainWindowGUI(QMainWindow):
 
         self.sim_menu = menu.addMenu("")
         self.action_sim_launch = QAction("", self)
+        self.action_sim_launch.setShortcut(QKeySequence("F5"))
         self.action_sim_pause = QAction("", self)
+        self.action_sim_pause.setShortcut(QKeySequence("P"))
         self.action_sim_stop = QAction("", self)
+        self.action_sim_stop.setShortcut(QKeySequence("O"))
         self.sim_menu.addAction(self.action_sim_launch)
         self.sim_menu.addAction(self.action_sim_pause)
         self.sim_menu.addAction(self.action_sim_stop)
@@ -137,20 +138,8 @@ class MainWindowGUI(QMainWindow):
         self.action_settings = QAction("", self)
         self.view_menu.addAction(self.action_settings)
 
-        self.help_menu = menu.addMenu("")
-        self.action_about = QAction("", self)
-        self.help_menu.addAction(self.action_about)
-
-    def _build_toolbar(self):
-        """Construit la barre d'outils avec les actions principales."""
-        self.toolbar = QToolBar("Barre principale")
-        self.toolbar.setMovable(False)
-        self.addToolBar(self.toolbar)
-        self.toolbar.addAction(self.action_import)
-        self.toolbar.addAction(self.action_add_sensor)
-        self.toolbar.addAction(self.action_add_anomaly)
-        self.toolbar.addAction(self.action_sim_launch)
-        self.toolbar.addAction(self.action_export_csv)
+        self.action_help = QAction("", self)
+        menu.addAction(self.action_help)
 
     def _build_docks(self):
         """Crée les docks ancrables : explorateur système (gauche) et propriétés (droite)."""
@@ -201,8 +190,7 @@ class MainWindowGUI(QMainWindow):
         
         self.view_menu.setTitle(t["view"])
         self.action_settings.setText(t["settings"])
-        self.help_menu.setTitle(t["help"])
-        self.action_about.setText(t["about"])
+        self.action_help.setText(t["help_btn"])
         
         self.dock_left.setWindowTitle(t["explorer"])
         self.dock_right.setWindowTitle(t["properties"])
