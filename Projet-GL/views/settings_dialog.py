@@ -57,6 +57,9 @@ class SettingsDialog(QDialog):
 
     def _on_accept(self):
         """Émet le signal ``theme_changed`` avec le thème sélectionné et ferme le dialogue."""
-        theme = "dark" if self._btn_dark.isChecked() else "light"
+        if self._btn_dark.isChecked():
+            theme = "dark"
+        else:
+            theme = "light"
         self.theme_changed.emit(theme)
         self.accept()

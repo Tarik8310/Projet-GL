@@ -207,8 +207,12 @@ class MainWindowGUI(QMainWindow):
         :return: Chaîne HTML à injecter dans le QLabel central.
         """
         t = TRANSLATIONS[self._language]
-        title_color = "#ecf0f1" if theme == "dark" else "#2c3e50"
-        step_color  = "#bdc3c7" if theme == "dark" else "#555555"
+        if theme == "dark":
+            title_color = "#ecf0f1"
+            step_color  = "#bdc3c7"
+        else:
+            title_color = "#2c3e50"
+            step_color  = "#555555"
         steps = "".join(
             f"<tr><td style='padding:6px 0; color:{step_color};'>{t[k]}</td></tr>"
             for k in ("step1", "step2", "step3", "step4", "step5")
@@ -230,7 +234,10 @@ class MainWindowGUI(QMainWindow):
     def _apply_stylesheet(self):
         """Applique la feuille de style Qt correspondant au thème courant."""
         self.setStyleSheet(ThemeManager.get_stylesheet(self._theme))
-        bg = "#1e2d3a" if self._theme == "dark" else "white"
+        if self._theme == "dark":
+            bg = "#1e2d3a"
+        else:
+            bg = "white"
         self._welcome_label.setStyleSheet(f"background:{bg};")
 
     def apply_theme(self, theme: str):

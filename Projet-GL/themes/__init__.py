@@ -227,7 +227,10 @@ class ThemeManager:
         :param theme: Identifiant du thème ('light' ou 'dark').
         :return: Instance QPalette configurée.
         """
-        return _dark_palette() if theme == "dark" else _light_palette()
+        if theme == "dark":
+            return _dark_palette()
+        else:
+            return _light_palette()
 
     @staticmethod
     def get_stylesheet(theme: str) -> str:
@@ -237,7 +240,10 @@ class ThemeManager:
         :param theme: Identifiant du thème ('light' ou 'dark').
         :return: Chaîne QSS.
         """
-        return _DARK_QSS if theme == "dark" else _LIGHT_QSS
+        if theme == "dark":
+            return _DARK_QSS
+        else:
+            return _LIGHT_QSS
 
     @staticmethod
     def get_tree_stylesheet(theme: str) -> str:
@@ -247,4 +253,7 @@ class ThemeManager:
         :param theme: Identifiant du thème ('light' ou 'dark').
         :return: Chaîne QSS.
         """
-        return _DARK_TREE_QSS if theme == "dark" else _LIGHT_TREE_QSS
+        if theme == "dark":
+            return _DARK_TREE_QSS
+        else:
+            return _LIGHT_TREE_QSS

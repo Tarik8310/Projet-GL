@@ -10,6 +10,8 @@ class AnomalyType(str, Enum):
     DRIFT = "Dérive (Drift)"
     NOISE = "Bruit (Noise)"
     STUCK = "Valeur bloquée (Stuck)"
+    OVERHEAT = "Surchauffe"
+    OIL_LEAK = "Fuite d'huile"
 
 
 class AnomalyMode(str, Enum):
@@ -92,7 +94,10 @@ class Anomaly:
             return value + delta
 
         if self.anomaly_type == AnomalyType.DRIFT:
-            ratio = (t - self.start_time) / self.duration if self.duration > 0 else 1.0
+            if self.duration > 0:
+                ratio = (t - self.start_time) / self.duration
+            else:
+                ratio = 1.0
             return value + delta * ratio
 
         if self.anomaly_type == AnomalyType.NOISE:
@@ -103,6 +108,24 @@ class Anomaly:
             if key not in self._stuck_values:
                 self._stuck_values[key] = value
             return self._stuck_values[key]
+
+        if self.anomaly_type == AnomalyType.OVERHEAT:
+            # SURCHAUFFE : montée accélérée (quadratique) de la valeur,
+            # toujours positive — simule un emballement thermique.
+            if self.duration > 0:
+                ratio = (t - self.start_time) / self.duration
+            else:
+                ratio = 1.0
+            return value + abs(delta) * (ratio ** 2)
+
+        if self.anomaly_type == AnomalyType.OIL_LEAK:
+            # FUITE D'HUILE : décroissance linéaire progressive,
+            # toujours négative — simule une perte continue.
+            if self.duration > 0:
+                ratio = (t - self.start_time) / self.duration
+            else:
+                ratio = 1.0
+            return value - abs(delta) * ratio
 
         return value
 

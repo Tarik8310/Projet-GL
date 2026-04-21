@@ -41,7 +41,10 @@ class SystemController:
         comp.is_operational = not comp.is_operational
         self._main.refresh_tree()
         self._main.gui.properties_panel.show_component(comp)
-        state = "opérationnel" if comp.is_operational else "hors service"
+        if comp.is_operational:
+            state = "opérationnel"
+        else:
+            state = "hors service"
         self._main.gui.statusBar().showMessage(
             f"Composant '{comp.name}' mis {state}."
         )

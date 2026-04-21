@@ -149,7 +149,10 @@ class PandasModel(QAbstractTableModel):
         val = self._df.iat[row, col]
 
         if role == Qt.DisplayRole:
-            return f"{val:.6f}" if isinstance(val, float) else str(val)
+            if isinstance(val, float):
+                return f"{val:.6f}"
+            else:
+                return str(val)
 
         if role == Qt.BackgroundRole:
             is_anomalous = any(
@@ -158,7 +161,10 @@ class PandasModel(QAbstractTableModel):
                 if c < len(self._df.columns)
             )
             if is_anomalous:
-                return _ROW_ANOM_DARK if self._theme == "dark" else _ROW_ANOM_LIGHT
+                if self._theme == "dark":
+                    return _ROW_ANOM_DARK
+                else:
+                    return _ROW_ANOM_LIGHT
 
         if role == Qt.TextAlignmentRole:
             if isinstance(val, (int, float)):
@@ -337,7 +343,10 @@ class DataPanel(QWidget):
         :param df: DataFrame à afficher (complet ou filtré).
         """
         self._df_current = df
-        total = len(self._df_full) if self._df_full is not None else 0
+        if self._df_full is not None:
+            total = len(self._df_full)
+        else:
+            total = 0
         model = PandasModel(df, self._anomaly_col_indices, self._theme, total)
         self.table.setModel(model)
         self._update_counter(len(df))
@@ -376,17 +385,27 @@ class DataPanel(QWidget):
 
         :param count: Nombre de lignes actuellement affichées.
         """
-        total = len(self._df_full) if self._df_full is not None else 0
+        if self._df_full is not None:
+            total = len(self._df_full)
+        else:
+            total = 0
         if count == total:
+            if total > 1:
+                plural = "s"
+            else:
+                plural = ""
             self._counter.setText(
-                f"{total:,} ligne{'s' if total > 1 else ''}".replace(",", " ")
+                f"{total:,} ligne{plural}".replace(",", " ")
             )
         else:
             self._counter.setText(f"{count:,} / {total:,}".replace(",", " "))
 
     def _apply_style(self):
         """Applique la feuille de style QSS du tableau selon le thème courant."""
-        style = _DARK_STYLE if self._theme == "dark" else _LIGHT_STYLE
+        if self._theme == "dark":
+            style = _DARK_STYLE
+        else:
+            style = _LIGHT_STYLE
         self.table.setStyleSheet(style)
 
         if self._theme == "dark":

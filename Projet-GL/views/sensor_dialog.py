@@ -34,7 +34,10 @@ class SensorDialog(QDialog):
         super().__init__(parent)
         self.component = component
         self.sensor = sensor
-        self.setWindowTitle("Modifier le capteur" if sensor else "Ajouter un capteur")
+        if sensor:
+            self.setWindowTitle("Modifier le capteur")
+        else:
+            self.setWindowTitle("Ajouter un capteur")
         self.setMinimumWidth(440)
         self._build_ui()
 
@@ -57,7 +60,11 @@ class SensorDialog(QDialog):
             h.addWidget(widget)
             form.addLayout(h)
 
-        self.name_edit = QLineEdit(self.sensor.name if self.sensor else "")
+        if self.sensor:
+            name_value = self.sensor.name
+        else:
+            name_value = ""
+        self.name_edit = QLineEdit(name_value)
         self.name_edit.setPlaceholderText("Ex : capteur_pression_1")
         row("Nom :", self.name_edit)
 
@@ -72,7 +79,11 @@ class SensorDialog(QDialog):
             self.output_combo.setEnabled(False)
         row("Sortie mesurée :", self.output_combo)
 
-        self.unit_edit = QLineEdit(self.sensor.unit if self.sensor else "")
+        if self.sensor:
+            unit_value = self.sensor.unit
+        else:
+            unit_value = ""
+        self.unit_edit = QLineEdit(unit_value)
         self.unit_edit.setPlaceholderText("Ex : bar, °C, kg/s")
         row("Unité :", self.unit_edit)
 
@@ -80,15 +91,21 @@ class SensorDialog(QDialog):
         self.freq_spin.setRange(0.1, 10_000.0)
         self.freq_spin.setSuffix(" Hz")
         self.freq_spin.setDecimals(1)
-        self.freq_spin.setValue(self.sensor.frequency if self.sensor else 10.0)
+        if self.sensor:
+            freq_value = self.sensor.frequency
+        else:
+            freq_value = 10.0
+        self.freq_spin.setValue(freq_value)
         row("Fréquence :", self.freq_spin)
 
         layout.addWidget(group)
 
         btns = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        btns.button(QDialogButtonBox.Ok).setText(
-            "Modifier" if self.sensor else "Ajouter"
-        )
+        if self.sensor:
+            ok_label = "Modifier"
+        else:
+            ok_label = "Ajouter"
+        btns.button(QDialogButtonBox.Ok).setText(ok_label)
         btns.accepted.connect(self._validate)
         btns.rejected.connect(self.reject)
         layout.addWidget(btns)

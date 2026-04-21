@@ -147,7 +147,10 @@ class MainWindowController:
         item = self.gui.tree.currentItem()
         if item:
             obj = item.data(0, Qt.UserRole)
-            return obj if isinstance(obj, Component) else None
+            if isinstance(obj, Component):
+                return obj
+            else:
+                return None
         return None
 
     # ------------------------------------------------------------------
@@ -168,7 +171,10 @@ class MainWindowController:
         root.setFont(0, bold)
 
         for comp in system.components:
-            icon = "🟢" if comp.is_operational else "🔴"
+            if comp.is_operational:
+                icon = "🟢"
+            else:
+                icon = "🔴"
             comp_item = QTreeWidgetItem(root, [f"{icon}  {comp.name}"])
             comp_item.setData(0, Qt.UserRole, comp)
             comp_item.setFont(0, bold)
@@ -245,11 +251,13 @@ class MainWindowController:
                 "       Fichier > Exporter les données CSV\n"
                 "       Sauvegardez les séries temporelles générées.\n\n"
                 "TYPES D'ANOMALIES\n"
-                "  OFFSET   — Décalage constant de la valeur du capteur.\n"
-                "  DRIFT    — Dérive progressive au fil du temps.\n"
-                "  NOISE    — Augmentation du bruit sur la mesure.\n"
-                "  STUCK    — Valeur figée (capteur bloqué).\n"
-                "  FAILURE  — Panne franche (valeur nulle ou hors plage).\n\n"
+                "  OFFSET     — Décalage constant de la valeur du capteur.\n"
+                "  DRIFT      — Dérive progressive au fil du temps.\n"
+                "  NOISE      — Augmentation du bruit sur la mesure.\n"
+                "  STUCK      — Valeur figée (capteur bloqué).\n"
+                "  FAILURE    — Panne franche (valeur nulle ou hors plage).\n"
+                "  OVERHEAT   — Surchauffe : montée accélérée de la valeur.\n"
+                "  OIL_LEAK   — Fuite d'huile : décroissance progressive.\n\n"
                 "GÉNÉRATION ALÉATOIRE\n"
                 "  Le bouton « Générer aléatoirement » remplit automatiquement tous les\n"
                 "  paramètres d'une anomalie avec des valeurs cohérentes.\n\n"
@@ -287,11 +295,13 @@ class MainWindowController:
                 "       File > Export CSV data\n"
                 "       Save the generated time series.\n\n"
                 "ANOMALY TYPES\n"
-                "  OFFSET   — Constant shift applied to the sensor value.\n"
-                "  DRIFT    — Progressive drift over time.\n"
-                "  NOISE    — Increased noise on the measurement.\n"
-                "  STUCK    — Frozen value (stuck sensor).\n"
-                "  FAILURE  — Hard failure (zero or out-of-range value).\n\n"
+                "  OFFSET     — Constant shift applied to the sensor value.\n"
+                "  DRIFT      — Progressive drift over time.\n"
+                "  NOISE      — Increased noise on the measurement.\n"
+                "  STUCK      — Frozen value (stuck sensor).\n"
+                "  FAILURE    — Hard failure (zero or out-of-range value).\n"
+                "  OVERHEAT   — Overheating: accelerating value ramp-up.\n"
+                "  OIL_LEAK   — Oil leak: progressive decrease over time.\n\n"
                 "RANDOM GENERATION\n"
                 "  The 'Generate randomly' button auto-fills all anomaly parameters\n"
                 "  with coherent values.\n\n"
@@ -308,9 +318,11 @@ class MainWindowController:
         }
 
         dlg = QDialog(self.gui)
-        dlg.setWindowTitle(
-            "À propos de LambdaSys" if self._lang == "Français" else "About LambdaSys"
-        )
+        if self._lang == "Français":
+            dlg_title = "À propos de LambdaSys"
+        else:
+            dlg_title = "About LambdaSys"
+        dlg.setWindowTitle(dlg_title)
         dlg.setWindowFlags(dlg.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         dlg.resize(620, 500)
 

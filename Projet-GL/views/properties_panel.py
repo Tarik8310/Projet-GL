@@ -96,14 +96,20 @@ class PropertiesPanel(QScrollArea):
         self._layout.addWidget(title)
         self._layout.addWidget(QLabel("Type : <i>Composant</i>"))
 
-        color = "#27ae60" if comp.is_operational else "#e74c3c"
-        text = "Opérationnel ✔" if comp.is_operational else "Hors service ✘"
+        if comp.is_operational:
+            color = "#27ae60"
+            text = "Opérationnel ✔"
+            toggle_label = "Mettre hors service"
+        else:
+            color = "#e74c3c"
+            text = "Hors service ✘"
+            toggle_label = "Remettre en service"
         self._layout.addWidget(
             QLabel(f"État : <span style='color:{color}'><b>{text}</b></span>")
         )
 
         btn_toggle = self._btn(
-            "Mettre hors service" if comp.is_operational else "Remettre en service",
+            toggle_label,
             "#e67e22",
         )
         btn_toggle.clicked.connect(lambda: self.component_toggle_requested.emit(comp))
@@ -167,7 +173,10 @@ class PropertiesPanel(QScrollArea):
         self._layout.addWidget(QLabel(f"Mode : {anomaly.mode.value}"))
         self._layout.addWidget(QLabel(f"Début : {anomaly.start_time} s"))
         self._layout.addWidget(QLabel(f"Durée : {anomaly.duration} s"))
-        suffix = " %" if anomaly.mode.value == "Relative (%)" else ""
+        if anomaly.mode.value == "Relative (%)":
+            suffix = " %"
+        else:
+            suffix = ""
         self._layout.addWidget(QLabel(f"Magnitude : {anomaly.magnitude}{suffix}"))
 
         self._layout.addWidget(self._sep())
